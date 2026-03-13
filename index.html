@@ -294,7 +294,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var ADMIN_PIN = "1234";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwGDqI2wNHoYVaGryqbiUUoWo1MflxPOaCA42WB9zLQ6Hh9FBy7oKAYcE9DOeZllejF3w/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFsptG3QOZIDDAT7DeiRH6STPhDdGL4jyJ8QIBXUampeDw2ZIOkkQ9bd_cFLWyVyGdXA/exec";
 var LUOGHI_DEFAULT = ["Subburra","Via Cavur 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonina"];
 var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
 
@@ -326,15 +326,16 @@ function getMeseNome()  { return MESI[state.meseCorrente]; }
 
 function apiCall(action, payload) {
   return new Promise(function(resolve) {
-    var data = Object.assign({ action: action }, payload || {});
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "INCOLLA_QUI_URL_WEB_APP") {
       resolve(demoData(action)); return;
     }
-    fetch(APPS_SCRIPT_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    }).then(function(r){ return r.json(); }).then(resolve)
+    var data = Object.assign({ action: action }, payload || {});
+    var params = Object.keys(data).map(function(k){
+      return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
+    }).join('&');
+    var url = APPS_SCRIPT_URL + '?' + params;
+    fetch(url, { method:'GET', redirect:'follow' })
+    .then(function(r){ return r.json(); }).then(resolve)
     .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
   });
 }
