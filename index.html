@@ -9,26 +9,15 @@
 <title>Registro Ore</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#f4f3ef;--bg2:#eceae4;--surface:#ffffff;--border:#dddbd4;
-  --text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--success:#1e6b3a;
-  --danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;
-  --shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;
-  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
-}
-@media(prefers-color-scheme:dark){:root{
-  --bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;
-  --text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--success:#4caf78;
-  --danger:#e05555;--pill-bg:#1e2d46;--pill-text:#7aadee;
-  --shadow:0 2px 16px rgba(0,0,0,0.4);
-}}
+:root{--bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;--text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
+@media(prefers-color-scheme:dark){:root{--bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;--text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--danger:#e05555;--pill-bg:#1e2d46;--pill-text:#7aadee;--shadow:0 2px 16px rgba(0,0,0,0.4);}}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);}
 #app{min-height:100vh;display:flex;flex-direction:column;}
 .screen{display:none;flex-direction:column;min-height:100vh;}
 .screen.active{display:flex;}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.topbar-title{font-size:17px;font-weight:600;letter-spacing:-0.3px;}
+.topbar-title{font-size:17px;font-weight:600;}
 .topbar-sub{font-size:12px;color:var(--text2);margin-top:1px;}
 .topbar-action{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:6px 0;font-family:var(--font);}
 .scroll{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
@@ -40,12 +29,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .stat-value{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--text);line-height:1;}
 .stat-value.euro{color:var(--accent);}
 .stat-value.small{font-size:16px;}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s,transform 0.1s;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;}
 .btn:active{transform:scale(0.97);opacity:0.85;}
-.btn-primary{background:var(--accent);color:#fff;padding:15px 20px;font-size:16px;width:100%;}
-.btn-secondary{background:var(--bg2);color:var(--text);padding:13px 20px;font-size:15px;width:100%;border:1px solid var(--border);}
-.btn-danger{background:transparent;color:var(--danger);padding:13px 20px;font-size:15px;width:100%;border:1px solid var(--danger);}
-.btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;cursor:pointer;font-family:var(--font);}
+.btn-primary{background:var(--accent);color:#fff;padding:15px 20px;font-size:16px;}
+.btn-secondary{background:var(--bg2);color:var(--text);padding:13px 20px;font-size:15px;border:1px solid var(--border);}
+.btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;cursor:pointer;font-family:var(--font);white-space:nowrap;}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
 .field label{font-size:12px;font-weight:600;letter-spacing:0.5px;color:var(--text2);text-transform:uppercase;}
@@ -55,8 +43,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ore-input{display:flex;align-items:center;gap:10px;}
 .ore-input input{flex:1;text-align:center;font-size:24px;font-family:var(--mono);font-weight:500;}
 .ore-btn{width:44px;height:44px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);font-size:22px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ore-btn:active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.voce-item{background:var(--bg2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;border:1px solid transparent;cursor:pointer;margin-bottom:6px;}
+.voce-item{background:var(--bg2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:6px;}
 .voce-date{font-size:12px;font-family:var(--mono);color:var(--text2);min-width:52px;}
 .voce-body{flex:1;min-width:0;}
 .voce-luogo{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -78,11 +65,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto;}
 .pin-key{height:64px;border-radius:14px;background:var(--bg2);border:1.5px solid var(--border);font-size:22px;font-weight:500;cursor:pointer;font-family:var(--font);color:var(--text);}
 .pin-key:active{background:var(--accent);color:#fff;}
-.pin-error{color:var(--danger);text-align:center;font-size:13px;min-height:18px;}
+.pin-error{color:var(--danger);text-align:center;font-size:13px;min-height:18px;margin-top:8px;}
 .loader{display:flex;align-items:center;justify-content:center;gap:8px;padding:40px;color:var(--text2);font-size:14px;}
 .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:12px 20px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:12px 20px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tag{background:var(--pill-bg);color:var(--pill-text);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;border:1.5px solid transparent;}
@@ -98,11 +85,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen active" id="screen-login">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;">
     <div style="font-size:48px;margin-bottom:16px;">📋</div>
-    <h1 style="font-size:24px;font-weight:600;margin-bottom:6px;letter-spacing:-0.5px;">Registro Ore</h1>
+    <h1 style="font-size:24px;font-weight:600;margin-bottom:6px;">Registro Ore</h1>
     <p style="color:var(--text2);font-size:14px;margin-bottom:40px;">Seleziona il tuo profilo</p>
     <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;">
-      <button class="btn btn-primary" onclick="loginUtente()"><span>👤</span> Accedi come Utente</button>
-      <button class="btn btn-secondary" onclick="showAdminPin()"><span>🔐</span> Accedi come Amministratore</button>
+      <button class="btn btn-primary" id="btn-login-utente"><span>👤</span> Accedi come Utente</button>
+      <button class="btn btn-secondary" id="btn-login-admin"><span>🔐</span> Accedi come Amministratore</button>
     </div>
     <p style="margin-top:30px;font-size:12px;color:var(--text2);">Versione 1.0 — 2026</p>
   </div>
@@ -112,7 +99,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen" id="screen-utente">
   <div class="topbar">
     <div><div class="topbar-title">Registro Ore</div><div class="topbar-sub" id="u-mese-label">—</div></div>
-    <button class="topbar-action" onclick="logoutUtente()">Esci</button>
+    <button class="topbar-action" id="btn-logout-utente">Esci</button>
   </div>
   <div class="scroll" id="tab-home">
     <div class="card">
@@ -127,14 +114,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="card">
       <div class="card-title">Azioni</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-primary" onclick="showNuovaVoce()"><span>＋</span> Inserisci nuova voce</button>
+        <button class="btn btn-primary" id="btn-nuova-voce-home"><span>＋</span> Inserisci nuova voce</button>
         <div class="btn-grid">
-          <button class="btn btn-secondary" onclick="switchTab('voci',1)"><span>📋</span> Voci mese</button>
-          <button class="btn btn-secondary" onclick="annullaUltimaVoce()"><span>↩</span> Annulla ultima</button>
+          <button class="btn btn-secondary" id="btn-vai-voci"><span>📋</span> Voci mese</button>
+          <button class="btn btn-secondary" id="btn-annulla-ultima"><span>↩</span> Annulla ultima</button>
         </div>
         <div class="btn-grid">
-          <button class="btn btn-secondary" onclick="inviaEmailUtente()"><span>✉</span> Invia email</button>
-          <button class="btn btn-secondary" onclick="esportaPDF()"><span>📄</span> Esporta PDF</button>
+          <button class="btn btn-secondary" id="btn-invia-email-utente"><span>✉</span> Invia email</button>
+          <button class="btn btn-secondary" id="btn-esporta-pdf-utente"><span>📄</span> Esporta PDF</button>
         </div>
       </div>
     </div>
@@ -147,7 +134,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="card-title" style="margin:0;">Tutte le voci</div>
-        <select id="filtro-mese" onchange="caricaVoci()" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+        <select id="filtro-mese" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
       </div>
       <div id="lista-voci"><div class="loader"><div class="spinner"></div></div></div>
     </div>
@@ -159,10 +146,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
   </div>
   <nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('home',0)"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></div>
-    <div class="nav-item" onclick="switchTab('voci',1)"><span class="nav-icon">📋</span><span class="nav-label">Voci</span></div>
-    <div class="nav-item" onclick="switchTab('riepilogo',2)"><span class="nav-icon">📊</span><span class="nav-label">Riepilogo</span></div>
-    <div class="nav-item" onclick="showNuovaVoce()"><span class="nav-icon">＋</span><span class="nav-label">Nuovo</span></div>
+    <div class="nav-item active" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></div>
+    <div class="nav-item" id="nav-voci"><span class="nav-icon">📋</span><span class="nav-label">Voci</span></div>
+    <div class="nav-item" id="nav-riepilogo"><span class="nav-icon">📊</span><span class="nav-label">Riepilogo</span></div>
+    <div class="nav-item" id="nav-nuovo"><span class="nav-icon">＋</span><span class="nav-label">Nuovo</span></div>
   </nav>
 </div>
 
@@ -170,7 +157,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen" id="screen-admin">
   <div class="topbar">
     <div><div class="topbar-title">Amministratore</div><div class="topbar-sub">Pannello di controllo</div></div>
-    <button class="topbar-action" onclick="logoutAdmin()">Esci</button>
+    <button class="topbar-action" id="btn-logout-admin">Esci</button>
   </div>
   <div class="scroll">
     <div class="card">
@@ -185,16 +172,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="card">
       <div class="card-title">Gestione</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-secondary" onclick="showModificaTariffa()"><span>💶</span> Modifica tariffa oraria</button>
-        <button class="btn btn-secondary" onclick="showGestisciLuoghi()"><span>📍</span> Gestisci luoghi frequenti</button>
-        <button class="btn btn-secondary" onclick="showGiornoMax()"><span>📈</span> Giorno con più ore lavorate</button>
+        <button class="btn btn-secondary" id="btn-modifica-tariffa"><span>💶</span> Modifica tariffa oraria</button>
+        <button class="btn btn-secondary" id="btn-gestisci-luoghi"><span>📍</span> Gestisci luoghi frequenti</button>
+        <button class="btn btn-secondary" id="btn-giorno-max"><span>📈</span> Giorno con più ore lavorate</button>
       </div>
     </div>
     <div class="card">
       <div class="card-title">Comunicazioni</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-primary" onclick="inviaRiepilogoMensile()"><span>✉</span> Invia riepilogo mensile</button>
-        <button class="btn btn-secondary" onclick="esportaPDF()"><span>📄</span> Esporta PDF mensile</button>
+        <button class="btn btn-primary" id="btn-invia-riepilogo"><span>✉</span> Invia riepilogo mensile</button>
+        <button class="btn btn-secondary" id="btn-esporta-pdf-admin"><span>📄</span> Esporta PDF mensile</button>
       </div>
     </div>
     <div class="card">
@@ -204,33 +191,34 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- MODAL PIN -->
 <div class="modal-overlay" id="modal-pin">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" style="text-align:center;">🔐 PIN Amministratore</div>
-    <div class="pin-dots" id="pin-dots">
+    <div class="pin-dots">
       <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="pin-error" id="pin-error"></div>
     <div class="pin-pad" style="margin-top:10px;">
-      <button class="pin-key" onclick="pinTap('1')">1</button>
-      <button class="pin-key" onclick="pinTap('2')">2</button>
-      <button class="pin-key" onclick="pinTap('3')">3</button>
-      <button class="pin-key" onclick="pinTap('4')">4</button>
-      <button class="pin-key" onclick="pinTap('5')">5</button>
-      <button class="pin-key" onclick="pinTap('6')">6</button>
-      <button class="pin-key" onclick="pinTap('7')">7</button>
-      <button class="pin-key" onclick="pinTap('8')">8</button>
-      <button class="pin-key" onclick="pinTap('9')">9</button>
-      <button class="pin-key" onclick="pinClear()" style="font-size:14px;">Canc</button>
-      <button class="pin-key" onclick="pinTap('0')">0</button>
-      <button class="pin-key" onclick="pinDel()">⌫</button>
+      <button class="pin-key" data-pin="1">1</button>
+      <button class="pin-key" data-pin="2">2</button>
+      <button class="pin-key" data-pin="3">3</button>
+      <button class="pin-key" data-pin="4">4</button>
+      <button class="pin-key" data-pin="5">5</button>
+      <button class="pin-key" data-pin="6">6</button>
+      <button class="pin-key" data-pin="7">7</button>
+      <button class="pin-key" data-pin="8">8</button>
+      <button class="pin-key" data-pin="9">9</button>
+      <button class="pin-key" id="pin-canc" style="font-size:14px;">Canc</button>
+      <button class="pin-key" data-pin="0">0</button>
+      <button class="pin-key" id="pin-del">⌫</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL VOCE -->
 <div class="modal-overlay" id="modal-voce">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -239,9 +227,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="field">
       <label>Ore lavorate</label>
       <div class="ore-input">
-        <button class="ore-btn" onclick="adjustOre(-0.5)">−</button>
+        <button class="ore-btn" id="btn-ore-meno">−</button>
         <input type="number" id="v-ore" value="2" min="0.5" max="24" step="0.5">
-        <button class="ore-btn" onclick="adjustOre(0.5)">＋</button>
+        <button class="ore-btn" id="btn-ore-piu">＋</button>
       </div>
     </div>
     <div class="field">
@@ -251,12 +239,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="field"><label>Note</label><textarea id="v-note" placeholder="Es. con Patrizia, OIS..."></textarea></div>
     <div style="display:flex;gap:10px;margin-top:4px;">
-      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modal-voce')">Annulla</button>
-      <button class="btn btn-primary" style="flex:2" id="btn-salva-voce" onclick="salvaVoce()"><span>✓</span> Salva voce</button>
+      <button class="btn btn-secondary" style="flex:1" id="btn-annulla-voce">Annulla</button>
+      <button class="btn btn-primary" style="flex:2" id="btn-salva-voce"><span>✓</span> Salva voce</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL TARIFFA -->
 <div class="modal-overlay" id="modal-tariffa">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -264,35 +253,37 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="field"><label>Tariffa €/ora</label><input type="number" id="new-tariffa" step="0.5" min="1"></div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Aggiorna la tariffa sul foglio del mese corrente.</p>
     <div style="display:flex;gap:10px;">
-      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('modal-tariffa')">Annulla</button>
-      <button class="btn btn-primary" style="flex:2" onclick="salvaTariffa()"><span>✓</span> Aggiorna</button>
+      <button class="btn btn-secondary" style="flex:1" id="btn-annulla-tariffa">Annulla</button>
+      <button class="btn btn-primary" style="flex:2" id="btn-salva-tariffa"><span>✓</span> Aggiorna</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL LUOGHI -->
 <div class="modal-overlay" id="modal-luoghi">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">📍 Luoghi frequenti</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Appaiono come suggerimenti rapidi nel form di inserimento.</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Appaiono come suggerimenti nel form di inserimento.</p>
     <div id="lista-luoghi-admin" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
     <div class="field">
       <label>Aggiungi luogo</label>
       <div style="display:flex;gap:8px;">
         <input type="text" id="nuovo-luogo" placeholder="Nome del luogo" style="flex:1">
-        <button class="btn-small" onclick="aggiungiLuogo()">+ Aggiungi</button>
+        <button class="btn-small" id="btn-aggiungi-luogo">+ Aggiungi</button>
       </div>
     </div>
-    <button class="btn btn-secondary" onclick="closeModal('modal-luoghi')">Chiudi</button>
+    <button class="btn btn-secondary" id="btn-chiudi-luoghi">Chiudi</button>
   </div>
 </div>
 
+<!-- MODAL GIORNO MAX -->
 <div class="modal-overlay" id="modal-giorno-max">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">📈 Giorno con più ore</div>
     <div id="giorno-max-content" style="padding:10px 0;"></div>
-    <button class="btn btn-secondary" style="margin-top:16px;" onclick="closeModal('modal-giorno-max')">Chiudi</button>
+    <button class="btn btn-secondary" style="margin-top:16px;" id="btn-chiudi-giorno-max">Chiudi</button>
   </div>
 </div>
 
@@ -300,367 +291,396 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 <script>
 // ============================================================
-// CONFIG — modifica PIN qui
+// CONFIG — MODIFICA QUI
 // ============================================================
-const ADMIN_PIN = "1234";
-const LUOGHI_DEFAULT = [
-  "Subburra","Via Cavur 248","Tiburtina","San Paolo OIS",
-  "Via G. Lanza 146","Via della Madonina"
-];
-const MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO",
-              "LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
+var ADMIN_PIN = "1234";
+var APPS_SCRIPT_URL = "INCOLLA_QUI_URL_WEB_APP";
+var LUOGHI_DEFAULT = ["Subburra","Via Cavur 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonina"];
+var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
 
-let state = {
+var state = {
   ruolo: null,
   meseCorrente: new Date().getMonth(),
   anno: 2026,
   voci: [],
-  luoghi: [...LUOGHI_DEFAULT],
+  luoghi: LUOGHI_DEFAULT.slice(),
   editingRow: null,
   pinBuffer: ""
 };
 
-// ============================================================
-// API — usa google.script.run (Apps Script hosted)
-// ============================================================
+function toast(msg, dur) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, dur || 2500);
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function openModal(id)  { document.getElementById('modal-'+id).classList.add('open'); }
+function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+function formatDate(d)  { if(!d) return ''; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function todayISO()     { return new Date().toISOString().split('T')[0]; }
+function getMeseNome()  { return MESI[state.meseCorrente]; }
+
 function apiCall(action, payload) {
-  return new Promise((resolve) => {
-    const data = Object.assign({ action }, payload || {});
-    google.script.run
-      .withSuccessHandler(resolve)
-      .withFailureHandler(err => {
-        toast('⚠ Errore: ' + err.message);
-        resolve({ ok: false, error: err.message });
-      })
-      .handleRequest(data);
+  return new Promise(function(resolve) {
+    var data = Object.assign({ action: action }, payload || {});
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "INCOLLA_QUI_URL_WEB_APP") {
+      resolve(demoData(action)); return;
+    }
+    fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    }).then(function(r){ return r.json(); }).then(resolve)
+    .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
   });
 }
 
-// ============================================================
-// UTILS
-// ============================================================
-function toast(msg, dur=2500) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
+function demoData(action) {
+  var v = [
+    {riga:4,data:'2026-03-03',ore:2,luogo:'Via Cavur 248',note:''},
+    {riga:5,data:'2026-03-03',ore:1,luogo:'Tiburtina',note:'con Patrizia'},
+    {riga:6,data:'2026-03-10',ore:2,luogo:'San Paolo OIS',note:''},
+    {riga:7,data:'2026-03-12',ore:1.5,luogo:'Via G. Lanza 146',note:''}
+  ];
+  if(action==='getVoci') return {ok:true,voci:v};
+  if(action==='getRiepilogoMese') return {ok:true,giorni:4,ore:6.5,euro:45.5,tariffa:7};
+  if(action==='getRiepilogoAnno') return {ok:true,
+    mesi:MESI.map(function(m,i){return {mese:m,giorni:i===2?4:0,ore:i===2?6.5:0,euro:i===2?45.5:0};}),
+    totOre:6.5,totEuro:45.5,totGiorni:4,tariffa:7};
+  if(action==='getGiornoMax') return {ok:true,data:'2026-03-03',ore:3,luoghi:['Via Cavur 248','Tiburtina']};
+  return {ok:true};
 }
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-}
-function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function formatDate(d) {
-  if (!d) return '';
-  const [y,m,day] = d.split('-');
-  return day+'/'+m+'/'+y;
-}
-function todayISO() { return new Date().toISOString().split('T')[0]; }
-function getMeseNome() { return MESI[state.meseCorrente]; }
 
-// ============================================================
-// LOGIN
-// ============================================================
 function loginUtente() {
-  state.ruolo = 'utente';
+  state.ruolo='utente';
   showScreen('utente');
-  document.getElementById('u-mese-label').textContent = getMeseNome() + ' ' + state.anno;
+  document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
   caricaHomeUtente();
   popolaFiltroMesi();
   popolaTagsLuoghi();
 }
-function logoutUtente() { state.ruolo = null; showScreen('login'); }
-function logoutAdmin()  { state.ruolo = null; showScreen('login'); }
+function logoutUtente() { state.ruolo=null; showScreen('login'); }
+function logoutAdmin()  { state.ruolo=null; showScreen('login'); }
 
-// ============================================================
-// PIN ADMIN
-// ============================================================
 function showAdminPin() {
-  state.pinBuffer = '';
+  state.pinBuffer='';
   aggiornaDotsPin();
-  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-error').textContent='';
   openModal('pin');
 }
 function pinTap(c) {
-  if (state.pinBuffer.length >= 4) return;
-  state.pinBuffer += c;
+  if(state.pinBuffer.length>=4) return;
+  state.pinBuffer+=c;
   aggiornaDotsPin();
-  if (state.pinBuffer.length === 4) setTimeout(verificaPin, 200);
+  if(state.pinBuffer.length===4) setTimeout(verificaPin,200);
 }
-function pinDel()   { state.pinBuffer = state.pinBuffer.slice(0,-1); aggiornaDotsPin(); }
-function pinClear() { state.pinBuffer = ''; aggiornaDotsPin(); }
+function pinDel()   { state.pinBuffer=state.pinBuffer.slice(0,-1); aggiornaDotsPin(); }
+function pinClear() { state.pinBuffer=''; aggiornaDotsPin(); }
 function aggiornaDotsPin() {
-  for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < state.pinBuffer.length);
+  for(var i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<state.pinBuffer.length);
 }
 function verificaPin() {
-  if (state.pinBuffer === ADMIN_PIN) {
-    closeModal('modal-pin');
-    state.ruolo = 'admin';
-    showScreen('admin');
-    caricaAdminData();
+  if(state.pinBuffer===ADMIN_PIN) {
+    closeModal('pin'); state.ruolo='admin'; showScreen('admin'); caricaAdminData();
   } else {
-    document.getElementById('pin-error').textContent = 'PIN non corretto';
-    state.pinBuffer = '';
-    aggiornaDotsPin();
+    document.getElementById('pin-error').textContent='PIN non corretto';
+    state.pinBuffer=''; aggiornaDotsPin();
   }
 }
 
-// ============================================================
-// UTENTE — HOME
-// ============================================================
-async function caricaHomeUtente() {
-  const r = await apiCall('getRiepilogoMese', { mese: getMeseNome(), anno: state.anno });
-  if (r && r.ok) {
-    document.getElementById('u-ore-tot').textContent  = Number(r.ore).toFixed(2);
-    document.getElementById('u-euro-tot').textContent = '€ ' + Number(r.euro).toFixed(2);
-    document.getElementById('u-giorni').textContent   = r.giorni + ' gg';
-    document.getElementById('u-tariffa').textContent  = '€ ' + Number(r.tariffa).toFixed(2) + '/h';
-  }
-  caricaUltimeVoci();
+function caricaHomeUtente() {
+  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
+    if(r&&r.ok) {
+      document.getElementById('u-ore-tot').textContent  = Number(r.ore).toFixed(2);
+      document.getElementById('u-euro-tot').textContent = '€ '+Number(r.euro).toFixed(2);
+      document.getElementById('u-giorni').textContent   = r.giorni+' gg';
+      document.getElementById('u-tariffa').textContent  = '€ '+Number(r.tariffa).toFixed(2)+'/h';
+    }
+    caricaUltimeVoci();
+  });
 }
 
-async function caricaUltimeVoci() {
-  const r = await apiCall('getVoci', { mese: getMeseNome(), anno: state.anno });
-  const el = document.getElementById('u-ultime-voci');
-  if (!r || !r.ok || !r.voci || !r.voci.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px;color:var(--text2)">Nessuna voce inserita</div></div>';
-    return;
-  }
-  state.voci = r.voci;
-  el.innerHTML = r.voci.slice(-5).reverse().map(voceHTML).join('');
+function caricaUltimeVoci() {
+  apiCall('getVoci',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
+    var el=document.getElementById('u-ultime-voci');
+    if(!r||!r.ok||!r.voci||!r.voci.length) {
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
+      return;
+    }
+    state.voci=r.voci;
+    el.innerHTML=r.voci.slice(-5).reverse().map(voceHTML).join('');
+    el.querySelectorAll('.voce-item').forEach(function(item) {
+      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
+    });
+  });
 }
 
 function voceHTML(v) {
-  return '<div class="voce-item" onclick="editVoce('+v.riga+')">'
+  return '<div class="voce-item" data-riga="'+v.riga+'">'
     +'<div class="voce-date">'+formatDate(v.data)+'</div>'
     +'<div class="voce-body"><div class="voce-luogo">'+(v.luogo||'—')+'</div>'
     +(v.note?'<div class="voce-note">'+v.note+'</div>':'')
     +'</div><div class="voce-ore">'+Number(v.ore).toFixed(1)+'h</div></div>';
 }
 
-// ============================================================
-// TAB SWITCHING
-// ============================================================
-function switchTab(tab, idx) {
-  document.querySelectorAll('.scroll').forEach(s => s.style.display='none');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+function switchTab(tab) {
+  document.querySelectorAll('.scroll').forEach(function(s){ s.style.display='none'; });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
   document.getElementById('tab-'+tab).style.display='flex';
-  document.querySelectorAll('.nav-item')[idx].classList.add('active');
-  if (tab==='voci') caricaVoci();
-  if (tab==='riepilogo') caricaRiepilogoDettaglio();
+  document.getElementById('nav-'+tab).classList.add('active');
+  if(tab==='voci') caricaVoci();
+  if(tab==='riepilogo') caricaRiepilogoDettaglio();
 }
 
 function popolaFiltroMesi() {
-  document.getElementById('filtro-mese').innerHTML = MESI.map((m,i) =>
-    '<option value="'+i+'"'+(i===state.meseCorrente?' selected':'')+'>'+m+'</option>'
-  ).join('');
+  document.getElementById('filtro-mese').innerHTML=MESI.map(function(m,i){
+    return '<option value="'+i+'"'+(i===state.meseCorrente?' selected':'')+'>'+m+'</option>';
+  }).join('');
 }
 
-async function caricaVoci() {
-  const mIdx = parseInt(document.getElementById('filtro-mese').value);
-  const el = document.getElementById('lista-voci');
-  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-  const r = await apiCall('getVoci', { mese: MESI[mIdx], anno: state.anno });
-  if (!r || !r.ok || !r.voci || !r.voci.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px;color:var(--text2)">Nessuna voce</div></div>';
-    return;
-  }
-  el.innerHTML = r.voci.slice().reverse().map(voceHTML).join('');
+function caricaVoci() {
+  var mIdx=parseInt(document.getElementById('filtro-mese').value);
+  var el=document.getElementById('lista-voci');
+  el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  apiCall('getVoci',{mese:MESI[mIdx],anno:state.anno}).then(function(r) {
+    if(!r||!r.ok||!r.voci||!r.voci.length) {
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
+      return;
+    }
+    el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
+    el.querySelectorAll('.voce-item').forEach(function(item){
+      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
+    });
+  });
 }
 
-async function caricaRiepilogoDettaglio() {
-  document.getElementById('riepilogo-content').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-  const r = await apiCall('getRiepilogoMese', { mese: getMeseNome(), anno: state.anno });
-  if (!r || !r.ok) return;
-  document.getElementById('riepilogo-content').innerHTML =
-    '<div class="stat-grid" style="margin-bottom:16px;">'
-    +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
-    +'<div class="stat"><div class="stat-label">Totale ore</div><div class="stat-value">'+Number(r.ore).toFixed(2)+'</div></div>'
-    +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+r.tariffa+'/h</div></div>'
-    +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.euro).toFixed(2)+'</div></div>'
-    +'</div><div style="background:var(--bg2);border-radius:10px;padding:14px;">'
-    +'<div style="font-size:13px;color:var(--text2);margin-bottom:6px;">Calcolo</div>'
-    +'<div style="font-family:var(--mono);font-size:14px;">'+Number(r.ore).toFixed(2)+' ore × €'+r.tariffa+' = <strong>€'+Number(r.euro).toFixed(2)+'</strong></div></div>';
+function caricaRiepilogoDettaglio() {
+  var el=document.getElementById('riepilogo-content');
+  el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
+    if(!r||!r.ok) return;
+    el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
+      +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
+      +'<div class="stat"><div class="stat-label">Totale ore</div><div class="stat-value">'+Number(r.ore).toFixed(2)+'</div></div>'
+      +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+r.tariffa+'/h</div></div>'
+      +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.euro).toFixed(2)+'</div></div>'
+      +'</div><div style="background:var(--bg2);border-radius:10px;padding:14px;">'
+      +'<div style="font-size:13px;color:var(--text2);margin-bottom:6px;">Calcolo</div>'
+      +'<div style="font-family:var(--mono);font-size:14px;">'+Number(r.ore).toFixed(2)+' ore × €'+r.tariffa+' = <strong>€'+Number(r.euro).toFixed(2)+'</strong></div></div>';
+  });
 }
 
-// ============================================================
-// NUOVA / MODIFICA VOCE
-// ============================================================
 function showNuovaVoce() {
-  state.editingRow = null;
-  document.getElementById('modal-voce-title').textContent = 'Nuova voce';
-  document.getElementById('btn-salva-voce').innerHTML = '<span>✓</span> Salva voce';
-  document.getElementById('v-data').value = todayISO();
-  document.getElementById('v-ore').value = '2';
-  document.getElementById('v-luogo').value = '';
-  document.getElementById('v-note').value = '';
-  document.querySelectorAll('#luoghi-tags .tag').forEach(t => t.classList.remove('selected'));
-  openModal('modal-voce');
+  state.editingRow=null;
+  document.getElementById('modal-voce-title').textContent='Nuova voce';
+  document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Salva voce';
+  document.getElementById('v-data').value=todayISO();
+  document.getElementById('v-ore').value='2';
+  document.getElementById('v-luogo').value='';
+  document.getElementById('v-note').value='';
+  document.querySelectorAll('#luoghi-tags .tag').forEach(function(t){ t.classList.remove('selected'); });
+  openModal('voce');
 }
 
 function editVoce(riga) {
-  const v = state.voci.find(x => x.riga === riga);
-  if (!v) return;
-  state.editingRow = riga;
-  document.getElementById('modal-voce-title').textContent = 'Modifica voce';
-  document.getElementById('btn-salva-voce').innerHTML = '<span>✓</span> Aggiorna voce';
-  document.getElementById('v-data').value  = v.data;
-  document.getElementById('v-ore').value   = v.ore;
-  document.getElementById('v-luogo').value = v.luogo;
-  document.getElementById('v-note').value  = v.note || '';
-  openModal('modal-voce');
+  var v=state.voci.find(function(x){ return x.riga===riga; });
+  if(!v) return;
+  state.editingRow=riga;
+  document.getElementById('modal-voce-title').textContent='Modifica voce';
+  document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
+  document.getElementById('v-data').value=v.data;
+  document.getElementById('v-ore').value=v.ore;
+  document.getElementById('v-luogo').value=v.luogo;
+  document.getElementById('v-note').value=v.note||'';
+  openModal('voce');
 }
 
 function adjustOre(delta) {
-  const inp = document.getElementById('v-ore');
-  const val = Math.round((parseFloat(inp.value||0)+delta)*2)/2;
-  inp.value = Math.max(0.5, Math.min(24, val));
+  var inp=document.getElementById('v-ore');
+  var val=Math.round((parseFloat(inp.value||0)+delta)*2)/2;
+  inp.value=Math.max(0.5,Math.min(24,val));
 }
 
 function popolaTagsLuoghi() {
-  document.getElementById('luoghi-tags').innerHTML = state.luoghi.map(l =>
-    '<div class="tag" onclick="selezionaLuogo(this,\''+l+'\')">'+l+'</div>'
-  ).join('');
+  var cont=document.getElementById('luoghi-tags');
+  cont.innerHTML=state.luoghi.map(function(l){
+    return '<div class="tag" data-luogo="'+l+'">'+l+'</div>';
+  }).join('');
+  cont.querySelectorAll('.tag').forEach(function(tag){
+    tag.addEventListener('click',function(){
+      cont.querySelectorAll('.tag').forEach(function(t){ t.classList.remove('selected'); });
+      tag.classList.add('selected');
+      document.getElementById('v-luogo').value=tag.dataset.luogo;
+    });
+  });
 }
 
-function selezionaLuogo(el, luogo) {
-  document.querySelectorAll('#luoghi-tags .tag').forEach(t => t.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('v-luogo').value = luogo;
+function salvaVoce() {
+  var data=document.getElementById('v-data').value;
+  var ore=parseFloat(document.getElementById('v-ore').value);
+  var luogo=document.getElementById('v-luogo').value.trim();
+  var note=document.getElementById('v-note').value.trim();
+  if(!data)         { toast('⚠ Inserisci una data'); return; }
+  if(!ore||ore<=0)  { toast('⚠ Inserisci le ore');   return; }
+  if(!luogo)        { toast('⚠ Inserisci il luogo'); return; }
+  var btn=document.getElementById('btn-salva-voce');
+  btn.textContent='Salvataggio...'; btn.disabled=true;
+  var action=state.editingRow?'aggiornaVoce':'salvaVoce';
+  var payload={mese:getMeseNome(),anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
+  if(state.editingRow) payload.riga=state.editingRow;
+  apiCall(action,payload).then(function(r){
+    btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
+    if(r&&r.ok) { closeModal('voce'); toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata'); caricaHomeUtente(); }
+    else toast('⚠ Errore nel salvataggio');
+  });
 }
 
-async function salvaVoce() {
-  const data  = document.getElementById('v-data').value;
-  const ore   = parseFloat(document.getElementById('v-ore').value);
-  const luogo = document.getElementById('v-luogo').value.trim();
-  const note  = document.getElementById('v-note').value.trim();
-  if (!data)       { toast('⚠ Inserisci una data'); return; }
-  if (!ore||ore<=0){ toast('⚠ Inserisci le ore');   return; }
-  if (!luogo)      { toast('⚠ Inserisci il luogo'); return; }
-
-  const btn = document.getElementById('btn-salva-voce');
-  btn.textContent = 'Salvataggio...';
-  btn.disabled = true;
-
-  const action  = state.editingRow ? 'aggiornaVoce' : 'salvaVoce';
-  const payload = { mese: getMeseNome(), anno: state.anno, data, ore, luogo, note };
-  if (state.editingRow) payload.riga = state.editingRow;
-
-  const r = await apiCall(action, payload);
-  btn.innerHTML = '<span>✓</span> Salva voce';
-  btn.disabled = false;
-
-  if (r && r.ok) {
-    closeModal('modal-voce');
-    toast(state.editingRow ? '✓ Voce aggiornata' : '✓ Voce salvata');
-    caricaHomeUtente();
-  } else toast('⚠ Errore nel salvataggio');
+function annullaUltimaVoce() {
+  if(!state.voci.length) { toast('Nessuna voce da annullare'); return; }
+  var ultima=state.voci[state.voci.length-1];
+  if(!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?')) return;
+  apiCall('eliminaVoce',{mese:getMeseNome(),anno:state.anno,riga:ultima.riga}).then(function(r){
+    if(r&&r.ok) { toast('↩ Ultima voce annullata'); caricaHomeUtente(); }
+    else toast('⚠ Errore');
+  });
 }
 
-async function annullaUltimaVoce() {
-  if (!state.voci.length) { toast('Nessuna voce da annullare'); return; }
-  const ultima = state.voci[state.voci.length-1];
-  if (!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?')) return;
-  const r = await apiCall('eliminaVoce', { mese: getMeseNome(), anno: state.anno, riga: ultima.riga });
-  if (r && r.ok) { toast('↩ Ultima voce annullata'); caricaHomeUtente(); }
-  else toast('⚠ Errore');
-}
-
-async function inviaEmailUtente() {
+function inviaEmailUtente() {
   toast('⏳ Invio in corso...');
-  const r = await apiCall('inviaEmail', { mese: getMeseNome(), anno: state.anno, tipo: 'utente' });
-  toast(r && r.ok ? '✉ Email inviata' : '⚠ Errore invio');
+  apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'utente'}).then(function(r){
+    toast(r&&r.ok?'✉ Email inviata':'⚠ Errore invio');
+  });
 }
 
-async function esportaPDF() {
+function esportaPDF() {
   toast('📄 Apertura PDF...');
-  const r = await apiCall('getPdfUrl', { mese: getMeseNome(), anno: state.anno });
-  if (r && r.ok && r.url) window.open(r.url, '_blank');
-  else toast('⚠ Errore export PDF');
+  apiCall('getPdfUrl',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+    if(r&&r.ok&&r.url) window.open(r.url,'_blank');
+    else toast('⚠ Errore export PDF');
+  });
 }
 
-// ============================================================
-// ADMIN
-// ============================================================
-async function caricaAdminData() {
-  document.getElementById('a-mesi-list').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-  const r = await apiCall('getRiepilogoAnno', { anno: state.anno });
-  if (!r || !r.ok) return;
-  document.getElementById('a-ore-anno').textContent   = Number(r.totOre).toFixed(2);
-  document.getElementById('a-euro-anno').textContent  = '€ '+Number(r.totEuro).toFixed(2);
-  document.getElementById('a-giorni-anno').textContent= r.totGiorni+' gg';
-  document.getElementById('a-tariffa').textContent    = '€ '+Number(r.tariffa).toFixed(2)+'/h';
-  document.getElementById('a-mesi-list').innerHTML = r.mesi.map(m =>
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
-    +'<div><div style="font-size:14px;font-weight:500;">'+m.mese+'</div>'
-    +'<div style="font-size:12px;color:var(--text2);">'+m.giorni+' giorni · '+Number(m.ore).toFixed(1)+'h</div></div>'
-    +'<div style="font-family:var(--mono);font-weight:600;color:var(--accent);">€ '+Number(m.euro).toFixed(2)+'</div></div>'
-  ).join('');
+function caricaAdminData() {
+  var el=document.getElementById('a-mesi-list');
+  el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  apiCall('getRiepilogoAnno',{anno:state.anno}).then(function(r){
+    if(!r||!r.ok) return;
+    document.getElementById('a-ore-anno').textContent   =Number(r.totOre).toFixed(2);
+    document.getElementById('a-euro-anno').textContent  ='€ '+Number(r.totEuro).toFixed(2);
+    document.getElementById('a-giorni-anno').textContent=r.totGiorni+' gg';
+    document.getElementById('a-tariffa').textContent    ='€ '+Number(r.tariffa).toFixed(2)+'/h';
+    el.innerHTML=r.mesi.map(function(m){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
+        +'<div><div style="font-size:14px;font-weight:500;">'+m.mese+'</div>'
+        +'<div style="font-size:12px;color:var(--text2);">'+m.giorni+' giorni · '+Number(m.ore).toFixed(1)+'h</div></div>'
+        +'<div style="font-family:var(--mono);font-weight:600;color:var(--accent);">€ '+Number(m.euro).toFixed(2)+'</div></div>';
+    }).join('');
+  });
 }
 
-function showModificaTariffa() {
-  document.getElementById('new-tariffa').value = 7;
-  openModal('modal-tariffa');
-}
+function showModificaTariffa() { document.getElementById('new-tariffa').value=7; openModal('tariffa'); }
 
-async function salvaTariffa() {
-  const val = parseFloat(document.getElementById('new-tariffa').value);
-  if (!val||val<=0) { toast('⚠ Tariffa non valida'); return; }
-  const r = await apiCall('aggiornaTariffa', { tariffa: val, mese: getMeseNome(), anno: state.anno });
-  if (r && r.ok) { closeModal('modal-tariffa'); toast('✓ Tariffa aggiornata a € '+val.toFixed(2)); caricaAdminData(); }
-  else toast('⚠ Errore');
+function salvaTariffa() {
+  var val=parseFloat(document.getElementById('new-tariffa').value);
+  if(!val||val<=0) { toast('⚠ Tariffa non valida'); return; }
+  apiCall('aggiornaTariffa',{tariffa:val,mese:getMeseNome(),anno:state.anno}).then(function(r){
+    if(r&&r.ok) { closeModal('tariffa'); toast('✓ Tariffa aggiornata a € '+val.toFixed(2)); caricaAdminData(); }
+    else toast('⚠ Errore');
+  });
 }
 
 function showGestisciLuoghi() {
-  document.getElementById('lista-luoghi-admin').innerHTML = state.luoghi.map((l,i) =>
-    '<div style="display:flex;align-items:center;gap:10px;">'
-    +'<div style="flex:1;padding:10px 14px;background:var(--bg2);border-radius:8px;font-size:14px;">'+l+'</div>'
-    +'<button onclick="rimuoviLuogo('+i+')" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;">✕</button></div>'
-  ).join('');
-  document.getElementById('nuovo-luogo').value = '';
-  openModal('modal-luoghi');
+  var lista=document.getElementById('lista-luoghi-admin');
+  lista.innerHTML=state.luoghi.map(function(l,i){
+    return '<div style="display:flex;align-items:center;gap:10px;">'
+      +'<div style="flex:1;padding:10px 14px;background:var(--bg2);border-radius:8px;font-size:14px;">'+l+'</div>'
+      +'<button data-idx="'+i+'" class="btn-rm-luogo" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;">✕</button></div>';
+  }).join('');
+  lista.querySelectorAll('.btn-rm-luogo').forEach(function(btn){
+    btn.addEventListener('click',function(){ rimuoviLuogo(parseInt(btn.dataset.idx)); });
+  });
+  document.getElementById('nuovo-luogo').value='';
+  openModal('luoghi');
 }
 
 function aggiungiLuogo() {
-  const val = document.getElementById('nuovo-luogo').value.trim();
-  if (!val) return;
-  if (state.luoghi.includes(val)) { toast('Luogo già presente'); return; }
-  state.luoghi.push(val);
-  popolaTagsLuoghi();
-  showGestisciLuoghi();
-  toast('✓ Luogo aggiunto');
+  var val=document.getElementById('nuovo-luogo').value.trim();
+  if(!val) return;
+  if(state.luoghi.indexOf(val)>=0) { toast('Luogo già presente'); return; }
+  state.luoghi.push(val); popolaTagsLuoghi(); showGestisciLuoghi(); toast('✓ Luogo aggiunto');
 }
 
-function rimuoviLuogo(idx) {
-  state.luoghi.splice(idx,1);
-  popolaTagsLuoghi();
-  showGestisciLuoghi();
-}
+function rimuoviLuogo(idx) { state.luoghi.splice(idx,1); popolaTagsLuoghi(); showGestisciLuoghi(); }
 
-async function showGiornoMax() {
-  const r = await apiCall('getGiornoMax', { mese: getMeseNome(), anno: state.anno });
-  const el = document.getElementById('giorno-max-content');
-  if (!r||!r.ok||!r.data) {
-    el.innerHTML = '<p style="color:var(--text2)">Nessun dato disponibile per questo mese</p>';
-  } else {
-    el.innerHTML =
-      '<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
+function showGiornoMax() {
+  apiCall('getGiornoMax',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+    var el=document.getElementById('giorno-max-content');
+    if(!r||!r.ok||!r.data) { el.innerHTML='<p style="color:var(--text2)">Nessun dato disponibile</p>'; }
+    else { el.innerHTML='<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
       +'<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.ore).toFixed(1)+'</div></div>'
-      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>';
-  }
-  openModal('modal-giorno-max');
+      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>'; }
+    openModal('giorno-max');
+  });
 }
 
-async function inviaRiepilogoMensile() {
+function inviaRiepilogoMensile() {
   toast('⏳ Invio in corso...');
-  const r = await apiCall('inviaEmail', { mese: getMeseNome(), anno: state.anno, tipo: 'mensile' });
-  toast(r && r.ok ? '✉ Riepilogo inviato' : '⚠ Errore invio');
+  apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'mensile'}).then(function(r){
+    toast(r&&r.ok?'✉ Riepilogo inviato':'⚠ Errore invio');
+  });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// ============================================================
+// EVENT LISTENERS — tutti qui, zero onclick inline
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('v-data').value = todayISO();
   popolaTagsLuoghi();
+
+  document.getElementById('btn-login-utente').addEventListener('click', loginUtente);
+  document.getElementById('btn-login-admin').addEventListener('click', showAdminPin);
+  document.getElementById('btn-logout-utente').addEventListener('click', logoutUtente);
+  document.getElementById('btn-logout-admin').addEventListener('click', logoutAdmin);
+
+  document.getElementById('btn-nuova-voce-home').addEventListener('click', showNuovaVoce);
+  document.getElementById('btn-vai-voci').addEventListener('click', function(){ switchTab('voci'); });
+  document.getElementById('btn-annulla-ultima').addEventListener('click', annullaUltimaVoce);
+  document.getElementById('btn-invia-email-utente').addEventListener('click', inviaEmailUtente);
+  document.getElementById('btn-esporta-pdf-utente').addEventListener('click', esportaPDF);
+
+  document.getElementById('nav-home').addEventListener('click', function(){ switchTab('home'); });
+  document.getElementById('nav-voci').addEventListener('click', function(){ switchTab('voci'); });
+  document.getElementById('nav-riepilogo').addEventListener('click', function(){ switchTab('riepilogo'); });
+  document.getElementById('nav-nuovo').addEventListener('click', showNuovaVoce);
+
+  document.getElementById('filtro-mese').addEventListener('change', caricaVoci);
+
+  document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
+  document.getElementById('btn-ore-piu').addEventListener('click',  function(){ adjustOre(0.5); });
+  document.getElementById('btn-annulla-voce').addEventListener('click', function(){ closeModal('voce'); });
+  document.getElementById('btn-salva-voce').addEventListener('click', salvaVoce);
+
+  document.querySelectorAll('.pin-key[data-pin]').forEach(function(btn){
+    btn.addEventListener('click', function(){ pinTap(btn.dataset.pin); });
+  });
+  document.getElementById('pin-canc').addEventListener('click', pinClear);
+  document.getElementById('pin-del').addEventListener('click', pinDel);
+
+  document.getElementById('btn-modifica-tariffa').addEventListener('click', showModificaTariffa);
+  document.getElementById('btn-gestisci-luoghi').addEventListener('click', showGestisciLuoghi);
+  document.getElementById('btn-giorno-max').addEventListener('click', showGiornoMax);
+  document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
+  document.getElementById('btn-esporta-pdf-admin').addEventListener('click', esportaPDF);
+
+  document.getElementById('btn-annulla-tariffa').addEventListener('click', function(){ closeModal('tariffa'); });
+  document.getElementById('btn-salva-tariffa').addEventListener('click', salvaTariffa);
+  document.getElementById('btn-aggiungi-luogo').addEventListener('click', aggiungiLuogo);
+  document.getElementById('btn-chiudi-luoghi').addEventListener('click', function(){ closeModal('luoghi'); });
+  document.getElementById('btn-chiudi-giorno-max').addEventListener('click', function(){ closeModal('giorno-max'); });
 });
 </script>
 </body>
