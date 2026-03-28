@@ -122,6 +122,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
           <button class="btn btn-secondary" id="btn-invia-email-utente"><span>✉</span> Invia email</button>
           <button class="btn btn-secondary" id="btn-esporta-pdf-utente"><span>📄</span> Esporta PDF</button>
         </div>
+        <button class="btn btn-danger" id="btn-chiudi-mese" style="border-color:var(--danger);color:var(--danger);"><span>🔒</span> Chiudi mese e invia report</button>
       </div>
     </div>
     <div class="card">
@@ -286,6 +287,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
+<!-- MODAL CHIUDI MESE -->
+<div class="modal-overlay" id="modal-chiudi-mese">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔒 Chiudi mese</div>
+    <div id="chiudi-mese-riepilogo" style="margin-bottom:20px;"></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">
+      Il mese verrà segnato come chiuso e verrà inviato il report via email. 
+      Potrai ancora modificarlo se necessario.
+    </p>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1" id="btn-annulla-chiudi">Annulla</button>
+      <button class="btn btn-primary" style="flex:2;background:var(--danger);" id="btn-conferma-chiudi">🔒 Conferma chiusura</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -293,11 +311,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5yql6uNndcR-i11MOK_QP81Uqi0ry7IonbJ6v2f5lByzsEb_h7OFlULo-CN0oJWcXTA/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxML9f6vvday46MLPeRsVVogXMPVK9myeJoTxwZRV_XvZWHWPUk_CPwqW4ILV7KogmCtA/exec";
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
- "andrea.cau.import@gmail.com":  "admin",
+"andrea.cau.import@gmail.com":  "admin",
   "blackjad555@gmail.com": "utente",
   "INCOLLA_EMAIL_UTENTE2@gmail.com": "utente",
   "INCOLLA_EMAIL_UTENTE3@gmail.com": "utente"
@@ -313,8 +331,19 @@ var state = {
   voci: [],
   luoghi: LUOGHI_DEFAULT.slice(),
   editingRow: null,
-  pinBuffer: ""
+  pinBuffer: "",
+  mesiChiusi: {}  // es. { "FEBBRAIO": true }
 };
+
+// Calcola se un mese è modificabile
+function getMesePermesso(nomeMese) {
+  var idx = MESI.indexOf(nomeMese);
+  var corrente = state.meseCorrente;
+  var precedente = corrente === 0 ? 11 : corrente - 1;
+  if (idx === corrente) return 'corrente';
+  if (idx === precedente) return 'precedente';
+  return 'bloccato';
+}
 
 function toast(msg, dur) {
   var t = document.getElementById('toast');
@@ -451,8 +480,17 @@ function verificaPin() {
 }
 
 function caricaHomeUtente() {
+  // Carica stato chiuso per mese corrente e precedente
+  var mesePrecedente = state.meseCorrente === 0 ? MESI[11] : MESI[state.meseCorrente-1];
+  caricaStatoMese(getMeseNome(), function() {
+    caricaStatoMese(mesePrecedente, function() {
+      aggiornaStatoPulsanteMese();
+    });
+  });
+
   apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
     if(r&&r.ok) {
+      state.riepilogoMese = r;
       document.getElementById('u-ore-tot').textContent  = Number(r.ore).toFixed(2);
       document.getElementById('u-euro-tot').textContent = '€ '+Number(r.euro).toFixed(2);
       document.getElementById('u-giorni').textContent   = r.giorni+' gg';
@@ -554,6 +592,13 @@ function showNuovaVoce() {
 function editVoce(uid) {
   var v=state.voci.find(function(x){ return (x.uid&&x.uid===uid) || x.riga===uid; });
   if(!v) return;
+  var meseDaModificare = v.mese || getMeseNome();
+  controllaPermessoModifica(meseDaModificare, function() {
+    _apriModificaVoce(v);
+  });
+}
+
+function _apriModificaVoce(v) {
   state.editingRow=v.uid||v.riga;
   document.getElementById('modal-voce-title').textContent='Modifica voce';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
@@ -562,6 +607,7 @@ function editVoce(uid) {
   document.getElementById('v-luogo').value=v.luogo;
   document.getElementById('v-note').value=v.note||'';
   openModal('voce');
+}
 }
 
 function adjustOre(delta) {
@@ -618,6 +664,79 @@ function annullaUltimaVoce() {
     if(r&&r.ok) { toast('↩ Ultima voce annullata'); caricaHomeUtente(); }
     else toast('⚠ Errore');
   });
+}
+
+// ============================================================
+// GESTIONE MESI CHIUSI E PERMESSI
+// ============================================================
+function caricaStatoMese(nomeMese, callback) {
+  apiCall('getStatoMese', { mese: nomeMese, anno: state.anno }).then(function(r) {
+    if (r && r.ok) state.mesiChiusi[nomeMese] = r.chiuso;
+    if (callback) callback();
+  });
+}
+
+function showChiudiMese() {
+  var mese = getMeseNome();
+  if (state.mesiChiusi[mese]) {
+    toast('⚠ ' + mese + ' è già chiuso');
+    return;
+  }
+  var r = state.riepilogoMese || {};
+  document.getElementById('chiudi-mese-riepilogo').innerHTML =
+    '<div class="stat-grid">'
+    +'<div class="stat"><div class="stat-label">Mese</div><div class="stat-value small">'+mese+'</div></div>'
+    +'<div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value">'+(r.ore||0).toFixed(1)+'</div></div>'
+    +'<div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small">'+(r.giorni||0)+'</div></div>'
+    +'<div class="stat"><div class="stat-label">Totale</div><div class="stat-value euro">€'+(r.euro||0).toFixed(2)+'</div></div>'
+    +'</div>';
+  openModal('chiudi-mese');
+}
+
+function confermaChiudiMese() {
+  var mese = getMeseNome();
+  closeModal('modal-chiudi-mese');
+  toast('⏳ Chiusura in corso...');
+  apiCall('chiudiMese', { mese: mese, anno: state.anno }).then(function(r) {
+    if (r && r.ok) {
+      state.mesiChiusi[mese] = true;
+      toast('🔒 ' + mese + ' chiuso — report inviato');
+      aggiornaStatoPulsanteMese();
+    } else toast('⚠ Errore nella chiusura');
+  });
+}
+
+function aggiornaStatoPulsanteMese() {
+  var mese = getMeseNome();
+  var btn = document.getElementById('btn-chiudi-mese');
+  if (!btn) return;
+  if (state.mesiChiusi[mese]) {
+    btn.innerHTML = '<span>🔒</span> Mese chiuso';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  } else {
+    btn.innerHTML = '<span>🔒</span> Chiudi mese e invia report';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+
+// Controlla permesso prima di aprire modifica voce
+function controllaPermessoModifica(nomeMese, callback) {
+  if (state.mesiChiusi[nomeMese]) {
+    toast('🔒 ' + nomeMese + ' è chiuso — non modificabile');
+    return;
+  }
+  var permesso = getMesePermesso(nomeMese);
+  if (permesso === 'bloccato') {
+    toast('⚠ Puoi modificare solo il mese corrente e quello precedente');
+    return;
+  }
+  if (permesso === 'precedente') {
+    if (!confirm('Stai modificando ' + nomeMese + ', un mese precedente.
+Sei sicuro di voler continuare?')) return;
+  }
+  callback();
 }
 
 function inviaEmailUtente() {
@@ -761,6 +880,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
   document.getElementById('btn-esporta-pdf-admin').addEventListener('click', esportaPDF);
 
+  document.getElementById('btn-chiudi-mese').addEventListener('click', showChiudiMese);
+  document.getElementById('btn-annulla-chiudi').addEventListener('click', function(){ closeModal('modal-chiudi-mese'); });
+  document.getElementById('btn-conferma-chiudi').addEventListener('click', confermaChiudiMese);
   document.getElementById('btn-annulla-tariffa').addEventListener('click', function(){ closeModal('tariffa'); });
   document.getElementById('btn-salva-tariffa').addEventListener('click', salvaTariffa);
   document.getElementById('btn-aggiungi-luogo').addEventListener('click', aggiungiLuogo);
