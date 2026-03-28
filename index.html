@@ -297,7 +297,7 @@ var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5yql6uNndcR-i11
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
-  "andrea.cau.import@gmail.com":  "admin",
+ "andrea.cau.import@gmail.com":  "admin",
   "blackjad555@gmail.com": "utente",
   "INCOLLA_EMAIL_UTENTE2@gmail.com": "utente",
   "INCOLLA_EMAIL_UTENTE3@gmail.com": "utente"
@@ -469,18 +469,18 @@ function caricaUltimeVoci() {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
       return;
     }
-    // Salva il mese dentro ogni voce per usarlo durante la modifica
-    r.voci.forEach(function(v){ v.mese = getMeseNome(); });
+    // Salva il mese e un id univoco dentro ogni voce
+    r.voci.forEach(function(v){ v.mese = getMeseNome(); v.uid = getMeseNome()+':'+v.riga; });
     state.voci=r.voci;
     el.innerHTML=r.voci.slice(-5).reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item) {
-      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
+      item.addEventListener('click',function(){ editVoce(item.dataset.uid || parseInt(item.dataset.riga)); });
     });
   });
 }
 
 function voceHTML(v) {
-  return '<div class="voce-item" data-riga="'+v.riga+'">'
+  return '<div class="voce-item" data-riga="'+v.riga+'" data-uid="'+(v.uid||v.riga)+'">'
     +'<div class="voce-date">'+formatDate(v.data)+'</div>'
     +'<div class="voce-body"><div class="voce-luogo">'+(v.luogo||'—')+'</div>'
     +(v.note?'<div class="voce-note">'+v.note+'</div>':'')
@@ -511,14 +511,14 @@ function caricaVoci() {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
       return;
     }
-    // Salva il mese dentro ogni voce per usarlo durante la modifica
+    // Salva il mese e un id univoco dentro ogni voce
     var mIdx2=parseInt(document.getElementById('filtro-mese').value);
-    r.voci.forEach(function(v){ v.mese = MESI[mIdx2]; });
+    r.voci.forEach(function(v){ v.mese = MESI[mIdx2]; v.uid = MESI[mIdx2]+':'+v.riga; });
     // Aggiorna state.voci con le voci del mese selezionato
     state.voci = state.voci.filter(function(v){ return v.mese !== MESI[mIdx2]; }).concat(r.voci);
     el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item){
-      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
+      item.addEventListener('click',function(){ editVoce(item.dataset.uid || parseInt(item.dataset.riga)); });
     });
   });
 }
@@ -551,10 +551,10 @@ function showNuovaVoce() {
   openModal('voce');
 }
 
-function editVoce(riga) {
-  var v=state.voci.find(function(x){ return x.riga===riga; });
+function editVoce(uid) {
+  var v=state.voci.find(function(x){ return (x.uid&&x.uid===uid) || x.riga===uid; });
   if(!v) return;
-  state.editingRow=riga;
+  state.editingRow=v.uid||v.riga;
   document.getElementById('modal-voce-title').textContent='Modifica voce';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
   document.getElementById('v-data').value=v.data;
@@ -598,11 +598,11 @@ function salvaVoce() {
   // Per la modifica usa il mese della voce originale, non il mese corrente
   var meseVoce = getMeseNome();
   if (state.editingRow) {
-    var vOrigine = state.voci.find(function(x){ return x.riga===state.editingRow; });
+    var vOrigine = state.voci.find(function(x){ return (x.uid&&x.uid===state.editingRow)||x.riga===state.editingRow; });
     if (vOrigine && vOrigine.mese) meseVoce = vOrigine.mese;
   }
   var payload={mese:meseVoce,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
-  if(state.editingRow) payload.riga=state.editingRow;
+  if(state.editingRow && vOrigine) payload.riga=vOrigine.riga;
   apiCall(action,payload).then(function(r){
     btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
     if(r&&r.ok) { closeModal('voce'); toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata'); caricaHomeUtente(); }
