@@ -7,7 +7,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Registro Ore</title>
-<script src="https://accounts.google.com/gsi/client"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;--text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
@@ -32,10 +31,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .stat-value.small{font-size:16px;}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;}
 .btn:active{transform:scale(0.97);opacity:0.85;}
-.btn:disabled{opacity:0.5;cursor:not-allowed;}
 .btn-primary{background:var(--accent);color:#fff;padding:15px 20px;font-size:16px;}
 .btn-secondary{background:var(--bg2);color:var(--text);padding:13px 20px;font-size:15px;border:1px solid var(--border);}
-.btn-danger{background:transparent;color:var(--danger);padding:13px 20px;font-size:15px;border:1px solid var(--danger);}
 .btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;cursor:pointer;font-family:var(--font);white-space:nowrap;}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
@@ -47,7 +44,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .ore-input input{flex:1;text-align:center;font-size:24px;font-family:var(--mono);font-weight:500;}
 .ore-btn{width:44px;height:44px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);font-size:22px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .voce-item{background:var(--bg2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:6px;}
-.voce-item.bloccata{opacity:0.5;cursor:not-allowed;}
 .voce-date{font-size:12px;font-family:var(--mono);color:var(--text2);min-width:52px;}
 .voce-body{flex:1;min-width:0;}
 .voce-luogo{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -63,6 +59,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;}
 .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
 .modal-title{font-size:18px;font-weight:600;margin-bottom:20px;}
+.pin-dots{display:flex;gap:12px;justify-content:center;margin:20px 0;}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:var(--border);transition:background 0.2s;}
+.pin-dot.filled{background:var(--accent);}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto;}
+.pin-key{height:64px;border-radius:14px;background:var(--bg2);border:1.5px solid var(--border);font-size:22px;font-weight:500;cursor:pointer;font-family:var(--font);color:var(--text);}
+.pin-key:active{background:var(--accent);color:#fff;}
+.pin-error{color:var(--danger);text-align:center;font-size:13px;min-height:18px;margin-top:8px;}
 .loader{display:flex;align-items:center;justify-content:center;gap:8px;padding:40px;color:var(--text2);font-size:14px;}
 .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -72,8 +75,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .tag{background:var(--pill-bg);color:var(--pill-text);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;border:1.5px solid transparent;}
 .tag.selected{border-color:var(--accent);font-weight:600;}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
-.badge-chiuso{display:inline-block;background:#e0f0e0;color:#1a6b1a;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;margin-left:8px;}
-@media(prefers-color-scheme:dark){.badge-chiuso{background:#1a3328;color:#4caf78;}}
+.empty-icon{font-size:40px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -84,9 +86,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;">
     <div style="font-size:48px;margin-bottom:16px;">📋</div>
     <h1 style="font-size:24px;font-weight:600;margin-bottom:6px;">Registro Ore</h1>
-    <p style="color:var(--text2);font-size:14px;margin-bottom:40px;">Accedi con il tuo account Google</p>
-    <div id="google-signin-btn" style="display:flex;justify-content:center;margin-bottom:16px;min-height:44px;"></div>
-    <div id="login-error" style="color:var(--danger);font-size:13px;text-align:center;min-height:20px;margin-top:8px;"></div>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:40px;">Seleziona il tuo profilo</p>
+    <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;">
+      <button class="btn btn-primary" id="btn-login-utente"><span>👤</span> Accedi come Utente</button>
+      <button class="btn btn-secondary" id="btn-login-admin"><span>🔐</span> Accedi come Amministratore</button>
+    </div>
     <p style="margin-top:30px;font-size:12px;color:var(--text2);">Versione 1.0 — 2026</p>
   </div>
 </div>
@@ -119,7 +123,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
           <button class="btn btn-secondary" id="btn-invia-email-utente"><span>✉</span> Invia email</button>
           <button class="btn btn-secondary" id="btn-esporta-pdf-utente"><span>📄</span> Esporta PDF</button>
         </div>
-        <button class="btn btn-danger" id="btn-chiudi-mese"><span>🔒</span> Chiudi mese e invia report</button>
       </div>
     </div>
     <div class="card">
@@ -179,12 +182,38 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button class="btn btn-primary" id="btn-invia-riepilogo"><span>✉</span> Invia riepilogo mensile</button>
         <button class="btn btn-secondary" id="btn-esporta-pdf-admin"><span>📄</span> Esporta PDF mensile</button>
-        <button class="btn btn-danger" id="btn-chiudi-mese-admin"><span>🔒</span> Chiudi mese e invia report</button>
       </div>
     </div>
     <div class="card">
       <div class="card-title">Dettaglio per mese</div>
       <div id="a-mesi-list"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PIN -->
+<div class="modal-overlay" id="modal-pin">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="text-align:center;">🔐 PIN Amministratore</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-pad" style="margin-top:10px;">
+      <button class="pin-key" data-pin="1">1</button>
+      <button class="pin-key" data-pin="2">2</button>
+      <button class="pin-key" data-pin="3">3</button>
+      <button class="pin-key" data-pin="4">4</button>
+      <button class="pin-key" data-pin="5">5</button>
+      <button class="pin-key" data-pin="6">6</button>
+      <button class="pin-key" data-pin="7">7</button>
+      <button class="pin-key" data-pin="8">8</button>
+      <button class="pin-key" data-pin="9">9</button>
+      <button class="pin-key" id="pin-canc" style="font-size:14px;">Canc</button>
+      <button class="pin-key" data-pin="0">0</button>
+      <button class="pin-key" id="pin-del">⌫</button>
     </div>
   </div>
 </div>
@@ -258,239 +287,114 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODAL CHIUDI MESE -->
-<div class="modal-overlay" id="modal-chiudi-mese">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🔒 Chiudi mese</div>
-    <div id="chiudi-mese-riepilogo" style="margin-bottom:16px;"></div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">Il mese verrà segnato come chiuso e verrà inviato il report via email.</p>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-secondary" style="flex:1" id="btn-annulla-chiudi">Annulla</button>
-      <button class="btn btn-primary" style="flex:2;background:var(--danger);" id="btn-conferma-chiudi">🔒 Conferma chiusura</button>
-    </div>
-  </div>
-</div>
-
 <div id="toast"></div>
 
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
-var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbzl2qUAcbvRCGmzB6519jwZWCusBDOpmLjj7YyTWha1AOjMwLpFRUm9Wg6ArFziS0zv/exec";
-
-// EMAIL → ruolo. Modifica con le email reali.
-var UTENTI_AUTORIZZATI = {
-  "andrea.cau.import@gmail.com": "admin",
-  "blackjad555@gmail.com": "utente"
-};
-
+var ADMIN_PIN = "1234";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxML9f6vvday46MLPeRsVVogXMPVK9myeJoTxwZRV_XvZWHWPUk_CPwqW4ILV7KogmCtA/exec";
 var LUOGHI_DEFAULT = ["Subburra","Via Cavur 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonina"];
 var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
 
-// ============================================================
-// STATE
-// ============================================================
 var state = {
-  ruolo: null, email: null, nome: null,
+  ruolo: null,
   meseCorrente: new Date().getMonth(),
   anno: 2026,
-  voci: [],        // array con {riga, data, ore, luogo, note, mese, uid}
+  voci: [],
   luoghi: LUOGHI_DEFAULT.slice(),
-  editingRow: null, // uid della voce in modifica
-  riepilogoMese: null,
-  mesiChiusi: {}   // { "GENNAIO": true, ... }
+  editingRow: null,
+  pinBuffer: ""
 };
 
-// ============================================================
-// UTILS
-// ============================================================
-function toast(msg, dur) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, dur||2500);
-}
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('screen-'+id).classList.add('active');
-}
-function openModal(id)  { document.getElementById('modal-'+id).classList.add('open'); }
-function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
-function formatDate(d)  { if(!d)return''; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
-function todayISO()     { return new Date().toISOString().split('T')[0]; }
-function getMeseNome()  { return MESI[state.meseCorrente]; }
-function getMesePrecedenteNome() { return state.meseCorrente===0 ? MESI[11] : MESI[state.meseCorrente-1]; }
+function toast(msg,dur){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},dur||2500);}
+function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById('screen-'+id).classList.add('active');}
+function openModal(id){document.getElementById('modal-'+id).classList.add('open');}
+function closeModal(id){document.getElementById('modal-'+id).classList.remove('open');}
+function formatDate(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function todayISO(){return new Date().toISOString().split('T')[0];}
+function getMeseNome(){return MESI[state.meseCorrente];}
 
-// Permesso mese: 'corrente' | 'precedente' | 'bloccato'
-function getPermessoMese(nomeMese) {
-  var idx = MESI.indexOf(nomeMese);
-  if (idx === state.meseCorrente) return 'corrente';
-  var prec = state.meseCorrente === 0 ? 11 : state.meseCorrente - 1;
-  if (idx === prec) return 'precedente';
-  return 'bloccato';
-}
-
-// ============================================================
-// API
-// ============================================================
-function apiCall(action, payload) {
-  return new Promise(function(resolve) {
-    var data = Object.assign({ action: action }, payload || {});
-    // Converte data ISO in giorno/mese/anno separati
-    if (data.data) {
-      var parts = String(data.data).split('-');
-      data.dataAnno   = parseInt(parts[0]);
-      data.dataMese   = parseInt(parts[1]);
-      data.dataGiorno = parseInt(parts[2]);
+function apiCall(action,payload){
+  return new Promise(function(resolve){
+    var data=Object.assign({action:action},payload||{});
+    if(data.data){
+      var parts=String(data.data).split('-');
+      data.dataAnno=parseInt(parts[0]);
+      data.dataMese=parseInt(parts[1]);
+      data.dataGiorno=parseInt(parts[2]);
     }
-    var params = Object.keys(data).map(function(k){
+    var params=Object.keys(data).map(function(k){
       return encodeURIComponent(k)+'='+encodeURIComponent(typeof data[k]==='object'?JSON.stringify(data[k]):data[k]);
     }).join('&');
-    fetch(APPS_SCRIPT_URL+'?'+params, { method:'GET', redirect:'follow' })
-    .then(function(r){ return r.json(); }).then(resolve)
-    .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
+    fetch(APPS_SCRIPT_URL+'?'+params,{method:'GET',redirect:'follow'})
+    .then(function(r){return r.json();}).then(resolve)
+    .catch(function(){toast('⚠ Errore connessione');resolve({ok:false});});
   });
 }
 
-// ============================================================
-// GOOGLE LOGIN
-// ============================================================
-function initGoogleSignIn() {
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleGoogleLogin
-  });
-  google.accounts.id.renderButton(
-    document.getElementById('google-signin-btn'),
-    { theme:'outline', size:'large', text:'signin_with', locale:'it' }
-  );
+function loginUtente(){
+  state.ruolo='utente';
+  showScreen('utente');
+  document.getElementById('u-mese-label').textContent=getMeseNome()+' '+state.anno;
+  caricaHomeUtente();
+  popolaFiltroMesi();
+  popolaTagsLuoghi();
 }
+function logoutUtente(){state.ruolo=null;showScreen('login');}
+function logoutAdmin(){state.ruolo=null;showScreen('login');}
 
-function handleGoogleLogin(response) {
-  var payload = JSON.parse(atob(response.credential.split('.')[1]));
-  var email   = payload.email;
-  var ruolo   = UTENTI_AUTORIZZATI[email];
-  if (!ruolo) {
-    document.getElementById('login-error').textContent = '⚠ Account non autorizzato: '+email;
-    return;
-  }
-  state.ruolo = ruolo;
-  state.email = email;
-  state.nome  = payload.name;
-  if (ruolo === 'admin') {
-    showScreen('admin');
-    caricaAdminData();
-  } else {
-    showScreen('utente');
-    document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
-    caricaHomeUtente();
-    popolaFiltroMesi();
-    popolaTagsLuoghi();
+function showAdminPin(){
+  state.pinBuffer='';
+  aggiornaDotsPin();
+  document.getElementById('pin-error').textContent='';
+  openModal('pin');
+}
+function pinTap(c){
+  if(state.pinBuffer.length>=4)return;
+  state.pinBuffer+=c;
+  aggiornaDotsPin();
+  if(state.pinBuffer.length===4)setTimeout(verificaPin,200);
+}
+function pinDel(){state.pinBuffer=state.pinBuffer.slice(0,-1);aggiornaDotsPin();}
+function pinClear(){state.pinBuffer='';aggiornaDotsPin();}
+function aggiornaDotsPin(){for(var i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<state.pinBuffer.length);}
+function verificaPin(){
+  if(state.pinBuffer===ADMIN_PIN){
+    closeModal('pin');state.ruolo='admin';showScreen('admin');caricaAdminData();
+  }else{
+    document.getElementById('pin-error').textContent='PIN non corretto';
+    state.pinBuffer='';aggiornaDotsPin();
   }
 }
 
-function logout() {
-  google.accounts.id.disableAutoSelect();
-  state.ruolo = null; state.email = null;
-  state.mesiChiusi = {}; state.voci = [];
-  showScreen('login');
-}
-
-// ============================================================
-// GESTIONE MESI CHIUSI
-// ============================================================
-function caricaStatoMese(nomeMese, callback) {
-  apiCall('getStatoMese', { mese: nomeMese, anno: state.anno }).then(function(r) {
-    if (r && r.ok) state.mesiChiusi[nomeMese] = r.chiuso;
-    if (callback) callback();
-  });
-}
-
-function showChiudiMese() {
-  var mese = getMeseNome();
-  if (state.mesiChiusi[mese]) { toast('🔒 '+mese+' è già chiuso'); return; }
-  var r = state.riepilogoMese || {};
-  document.getElementById('chiudi-mese-riepilogo').innerHTML =
-    '<div class="stat-grid">'
-    +'<div class="stat"><div class="stat-label">Mese</div><div class="stat-value small">'+mese+'</div></div>'
-    +'<div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.ore||0).toFixed(1)+'</div></div>'
-    +'<div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small">'+(r.giorni||0)+'</div></div>'
-    +'<div class="stat"><div class="stat-label">Totale</div><div class="stat-value euro">€'+Number(r.euro||0).toFixed(2)+'</div></div>'
-    +'</div>';
-  openModal('chiudi-mese');
-}
-
-function confermaChiudiMese() {
-  var mese = getMeseNome();
-  closeModal('modal-chiudi-mese');
-  toast('⏳ Chiusura in corso...');
-  apiCall('chiudiMese', { mese: mese, anno: state.anno }).then(function(r) {
-    if (r && r.ok) {
-      state.mesiChiusi[mese] = true;
-      toast('🔒 '+mese+' chiuso — report inviato');
-      aggiornaPulsanteChiudiMese();
-    } else toast('⚠ Errore nella chiusura');
-  });
-}
-
-function aggiornaPulsanteChiudiMese() {
-  var mese = getMeseNome();
-  ['btn-chiudi-mese','btn-chiudi-mese-admin'].forEach(function(id) {
-    var btn = document.getElementById(id);
-    if (!btn) return;
-    if (state.mesiChiusi[mese]) {
-      btn.innerHTML = '<span>🔒</span> Mese chiuso';
-      btn.disabled = true;
-    } else {
-      btn.innerHTML = '<span>🔒</span> Chiudi mese e invia report';
-      btn.disabled = false;
-    }
-  });
-}
-
-// ============================================================
-// HOME UTENTE
-// ============================================================
-function caricaHomeUtente() {
-  // Carica stato mese corrente e precedente
-  caricaStatoMese(getMeseNome(), function() {
-    caricaStatoMese(getMesePrecedenteNome(), function() {
-      aggiornaPulsanteChiudiMese();
-    });
-  });
-  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
-    if (r&&r.ok) {
-      state.riepilogoMese = r;
-      document.getElementById('u-ore-tot').textContent  = Number(r.ore).toFixed(2);
-      document.getElementById('u-euro-tot').textContent = '€ '+Number(r.euro).toFixed(2);
-      document.getElementById('u-giorni').textContent   = r.giorni+' gg';
-      document.getElementById('u-tariffa').textContent  = '€ '+Number(r.tariffa).toFixed(2)+'/h';
+function caricaHomeUtente(){
+  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+    if(r&&r.ok){
+      document.getElementById('u-ore-tot').textContent=Number(r.ore).toFixed(2);
+      document.getElementById('u-euro-tot').textContent='€ '+Number(r.euro).toFixed(2);
+      document.getElementById('u-giorni').textContent=r.giorni+' gg';
+      document.getElementById('u-tariffa').textContent='€ '+Number(r.tariffa).toFixed(2)+'/h';
     }
     caricaUltimeVoci();
   });
 }
 
-function caricaUltimeVoci() {
-  apiCall('getVoci',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
-    var el = document.getElementById('u-ultime-voci');
-    if (!r||!r.ok||!r.voci||!r.voci.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
+function caricaUltimeVoci(){
+  apiCall('getVoci',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+    var el=document.getElementById('u-ultime-voci');
+    if(!r||!r.ok||!r.voci||!r.voci.length){
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
       return;
     }
-    r.voci.forEach(function(v){ v.mese=getMeseNome(); v.uid=getMeseNome()+':'+v.riga; });
-    // Aggiorna state.voci per il mese corrente
-    state.voci = state.voci.filter(function(v){ return v.mese!==getMeseNome(); }).concat(r.voci);
-    el.innerHTML = r.voci.slice(-5).reverse().map(voceHTML).join('');
-    el.querySelectorAll('.voce-item').forEach(function(item) {
-      item.addEventListener('click', function(){ editVoce(item.dataset.uid); });
+    r.voci.forEach(function(v){v.mese=getMeseNome();v.uid=getMeseNome()+':'+v.riga;});
+    state.voci=state.voci.filter(function(v){return v.mese!==getMeseNome();}).concat(r.voci);
+    el.innerHTML=r.voci.slice(-5).reverse().map(voceHTML).join('');
+    el.querySelectorAll('.voce-item').forEach(function(item){
+      item.addEventListener('click',function(){editVoce(item.dataset.uid);});
     });
   });
 }
 
-function voceHTML(v) {
+function voceHTML(v){
   return '<div class="voce-item" data-riga="'+v.riga+'" data-uid="'+v.uid+'">'
     +'<div class="voce-date">'+formatDate(v.data)+'</div>'
     +'<div class="voce-body"><div class="voce-luogo">'+(v.luogo||'—')+'</div>'
@@ -498,52 +402,46 @@ function voceHTML(v) {
     +'</div><div class="voce-ore">'+Number(v.ore).toFixed(1)+'h</div></div>';
 }
 
-// ============================================================
-// TAB SWITCHING
-// ============================================================
-function switchTab(tab) {
-  document.querySelectorAll('.scroll').forEach(function(s){ s.style.display='none'; });
-  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+function switchTab(tab){
+  document.querySelectorAll('.scroll').forEach(function(s){s.style.display='none';});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   document.getElementById('tab-'+tab).style.display='flex';
   document.getElementById('nav-'+tab).classList.add('active');
-  if (tab==='voci') caricaVoci();
-  if (tab==='riepilogo') caricaRiepilogoDettaglio();
+  if(tab==='voci')caricaVoci();
+  if(tab==='riepilogo')caricaRiepilogoDettaglio();
 }
 
-function popolaFiltroMesi() {
-  document.getElementById('filtro-mese').innerHTML = MESI.map(function(m,i){
+function popolaFiltroMesi(){
+  document.getElementById('filtro-mese').innerHTML=MESI.map(function(m,i){
     return '<option value="'+i+'"'+(i===state.meseCorrente?' selected':'')+'>'+m+'</option>';
   }).join('');
 }
 
-function caricaVoci() {
-  var mIdx = parseInt(document.getElementById('filtro-mese').value);
-  var mese  = MESI[mIdx];
-  var el    = document.getElementById('lista-voci');
-  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-  // Carica stato mese selezionato
-  caricaStatoMese(mese, function(){});
-  apiCall('getVoci',{mese:mese,anno:state.anno}).then(function(r) {
-    if (!r||!r.ok||!r.voci||!r.voci.length) {
-      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
+function caricaVoci(){
+  var mIdx=parseInt(document.getElementById('filtro-mese').value);
+  var mese=MESI[mIdx];
+  var el=document.getElementById('lista-voci');
+  el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  apiCall('getVoci',{mese:mese,anno:state.anno}).then(function(r){
+    if(!r||!r.ok||!r.voci||!r.voci.length){
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
       return;
     }
-    r.voci.forEach(function(v){ v.mese=mese; v.uid=mese+':'+v.riga; });
-    state.voci = state.voci.filter(function(v){ return v.mese!==mese; }).concat(r.voci);
-    el.innerHTML = r.voci.slice().reverse().map(voceHTML).join('');
+    r.voci.forEach(function(v){v.mese=mese;v.uid=mese+':'+v.riga;});
+    state.voci=state.voci.filter(function(v){return v.mese!==mese;}).concat(r.voci);
+    el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item){
-      item.addEventListener('click',function(){ editVoce(item.dataset.uid); });
+      item.addEventListener('click',function(){editVoce(item.dataset.uid);});
     });
   });
 }
 
-function caricaRiepilogoDettaglio() {
-  var el = document.getElementById('riepilogo-content');
-  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
-    if (!r||!r.ok) return;
-    el.innerHTML =
-      '<div class="stat-grid" style="margin-bottom:16px;">'
+function caricaRiepilogoDettaglio(){
+  var el=document.getElementById('riepilogo-content');
+  el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+    if(!r||!r.ok)return;
+    el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
       +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
       +'<div class="stat"><div class="stat-label">Totale ore</div><div class="stat-value">'+Number(r.ore).toFixed(2)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+r.tariffa+'/h</div></div>'
@@ -554,272 +452,212 @@ function caricaRiepilogoDettaglio() {
   });
 }
 
-// ============================================================
-// MODIFICA / NUOVA VOCE
-// ============================================================
-function editVoce(uid) {
-  var v = state.voci.find(function(x){ return x.uid===uid; });
-  if (!v) return;
-  var meseDaModificare = v.mese || getMeseNome();
-  var permesso = getPermessoMese(meseDaModificare);
-  // Controlla se chiuso
-  if (state.mesiChiusi[meseDaModificare]) {
-    toast('🔒 '+meseDaModificare+' è chiuso — non modificabile');
-    return;
-  }
-  // Controlla permesso
-  if (permesso === 'bloccato') {
-    toast('⚠ Solo mese corrente e precedente sono modificabili');
-    return;
-  }
-  if (permesso === 'precedente') {
-    if (!confirm('Stai modificando '+meseDaModificare+', un mese precedente.\nSei sicuro di voler continuare?')) return;
-  }
-  // Apri modal
-  state.editingRow = uid;
-  document.getElementById('modal-voce-title').textContent = 'Modifica voce';
-  document.getElementById('btn-salva-voce').innerHTML = '<span>✓</span> Aggiorna voce';
-  document.getElementById('v-data').value  = v.data;
-  document.getElementById('v-ore').value   = v.ore;
-  document.getElementById('v-luogo').value = v.luogo;
-  document.getElementById('v-note').value  = v.note||'';
+function editVoce(uid){
+  var v=state.voci.find(function(x){return x.uid===uid;});
+  if(!v)return;
+  state.editingRow=uid;
+  document.getElementById('modal-voce-title').textContent='Modifica voce';
+  document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
+  document.getElementById('v-data').value=v.data;
+  document.getElementById('v-ore').value=v.ore;
+  document.getElementById('v-luogo').value=v.luogo;
+  document.getElementById('v-note').value=v.note||'';
   openModal('voce');
 }
 
-function showNuovaVoce() {
-  state.editingRow = null;
-  document.getElementById('modal-voce-title').textContent = 'Nuova voce';
-  document.getElementById('btn-salva-voce').innerHTML = '<span>✓</span> Salva voce';
-  document.getElementById('v-data').value  = todayISO();
-  document.getElementById('v-ore').value   = '2';
-  document.getElementById('v-luogo').value = '';
-  document.getElementById('v-note').value  = '';
-  document.querySelectorAll('#luoghi-tags .tag').forEach(function(t){ t.classList.remove('selected'); });
+function showNuovaVoce(){
+  state.editingRow=null;
+  document.getElementById('modal-voce-title').textContent='Nuova voce';
+  document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Salva voce';
+  document.getElementById('v-data').value=todayISO();
+  document.getElementById('v-ore').value='2';
+  document.getElementById('v-luogo').value='';
+  document.getElementById('v-note').value='';
+  document.querySelectorAll('#luoghi-tags .tag').forEach(function(t){t.classList.remove('selected');});
   openModal('voce');
 }
 
-function adjustOre(delta) {
-  var inp = document.getElementById('v-ore');
-  var val = Math.round((parseFloat(inp.value||0)+delta)*2)/2;
-  inp.value = Math.max(0.5, Math.min(24, val));
+function adjustOre(delta){
+  var inp=document.getElementById('v-ore');
+  var val=Math.round((parseFloat(inp.value||0)+delta)*2)/2;
+  inp.value=Math.max(0.5,Math.min(24,val));
 }
 
-function popolaTagsLuoghi() {
-  var cont = document.getElementById('luoghi-tags');
-  cont.innerHTML = state.luoghi.map(function(l){
+function popolaTagsLuoghi(){
+  var cont=document.getElementById('luoghi-tags');
+  cont.innerHTML=state.luoghi.map(function(l){
     return '<div class="tag" data-luogo="'+l+'">'+l+'</div>';
   }).join('');
   cont.querySelectorAll('.tag').forEach(function(tag){
     tag.addEventListener('click',function(){
-      cont.querySelectorAll('.tag').forEach(function(t){ t.classList.remove('selected'); });
+      cont.querySelectorAll('.tag').forEach(function(t){t.classList.remove('selected');});
       tag.classList.add('selected');
-      document.getElementById('v-luogo').value = tag.dataset.luogo;
+      document.getElementById('v-luogo').value=tag.dataset.luogo;
     });
   });
 }
 
-function salvaVoce() {
-  var data  = document.getElementById('v-data').value;
-  var ore   = parseFloat(document.getElementById('v-ore').value);
-  var luogo = document.getElementById('v-luogo').value.trim();
-  var note  = document.getElementById('v-note').value.trim();
-  if (!data)       { toast('⚠ Inserisci una data'); return; }
-  if (!ore||ore<=0){ toast('⚠ Inserisci le ore');   return; }
-  if (!luogo)      { toast('⚠ Inserisci il luogo'); return; }
-
-  var btn = document.getElementById('btn-salva-voce');
-  btn.textContent = 'Salvataggio...'; btn.disabled = true;
-
-  var action = state.editingRow ? 'aggiornaVoce' : 'salvaVoce';
-  // Determina il mese corretto
-  var meseTarget = getMeseNome();
-  var rigaTarget  = null;
-  if (state.editingRow) {
-    var vOrig = state.voci.find(function(x){ return x.uid===state.editingRow; });
-    if (vOrig) { meseTarget = vOrig.mese; rigaTarget = vOrig.riga; }
+function salvaVoce(){
+  var data=document.getElementById('v-data').value;
+  var ore=parseFloat(document.getElementById('v-ore').value);
+  var luogo=document.getElementById('v-luogo').value.trim();
+  var note=document.getElementById('v-note').value.trim();
+  if(!data){toast('⚠ Inserisci una data');return;}
+  if(!ore||ore<=0){toast('⚠ Inserisci le ore');return;}
+  if(!luogo){toast('⚠ Inserisci il luogo');return;}
+  var btn=document.getElementById('btn-salva-voce');
+  btn.textContent='Salvataggio...';btn.disabled=true;
+  var action=state.editingRow?'aggiornaVoce':'salvaVoce';
+  var meseTarget=getMeseNome();
+  var rigaTarget=null;
+  if(state.editingRow){
+    var vOrig=state.voci.find(function(x){return x.uid===state.editingRow;});
+    if(vOrig){meseTarget=vOrig.mese;rigaTarget=vOrig.riga;}
   }
-  var payload = { mese: meseTarget, anno: state.anno, data: data, ore: ore, luogo: luogo, note: note };
-  if (rigaTarget) payload.riga = rigaTarget;
-
-  apiCall(action, payload).then(function(r) {
-    btn.innerHTML = '<span>✓</span> Salva voce'; btn.disabled = false;
-    if (r&&r.ok) {
-      closeModal('modal-voce');
-      toast(state.editingRow ? '✓ Voce aggiornata' : '✓ Voce salvata');
-      caricaHomeUtente();
-    } else toast('⚠ Errore nel salvataggio');
+  var payload={mese:meseTarget,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
+  if(rigaTarget)payload.riga=rigaTarget;
+  apiCall(action,payload).then(function(r){
+    btn.innerHTML='<span>✓</span> Salva voce';btn.disabled=false;
+    if(r&&r.ok){closeModal('modal-voce');toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata');caricaHomeUtente();}
+    else toast('⚠ Errore nel salvataggio');
   });
 }
 
-function annullaUltimaVoce() {
-  var vociMese = state.voci.filter(function(v){ return v.mese===getMeseNome(); });
-  if (!vociMese.length) { toast('Nessuna voce da annullare'); return; }
-  var ultima = vociMese[vociMese.length-1];
-  if (!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?')) return;
+function annullaUltimaVoce(){
+  var vociMese=state.voci.filter(function(v){return v.mese===getMeseNome();});
+  if(!vociMese.length){toast('Nessuna voce da annullare');return;}
+  var ultima=vociMese[vociMese.length-1];
+  if(!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?'))return;
   apiCall('eliminaVoce',{mese:getMeseNome(),anno:state.anno,riga:ultima.riga}).then(function(r){
-    if (r&&r.ok) { toast('↩ Ultima voce annullata'); caricaHomeUtente(); }
+    if(r&&r.ok){toast('↩ Ultima voce annullata');caricaHomeUtente();}
     else toast('⚠ Errore');
   });
 }
 
-function inviaEmailUtente() {
+function inviaEmailUtente(){
   toast('⏳ Invio in corso...');
   apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'utente'}).then(function(r){
-    toast(r&&r.ok ? '✉ Email inviata' : '⚠ Errore invio');
+    toast(r&&r.ok?'✉ Email inviata':'⚠ Errore invio');
   });
 }
 
-function esportaPDF() {
+function esportaPDF(){
   toast('📄 Apertura PDF...');
   apiCall('getPdfUrl',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if (r&&r.ok&&r.url) {
-      var a = document.createElement('a');
-      a.href=r.url; a.target='_blank'; a.rel='noopener';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    } else toast('⚠ Errore export PDF');
+    if(r&&r.ok&&r.url){
+      var a=document.createElement('a');
+      a.href=r.url;a.target='_blank';a.rel='noopener';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }else toast('⚠ Errore export PDF');
   });
 }
 
-// ============================================================
-// ADMIN
-// ============================================================
-function caricaAdminData() {
-  document.getElementById('a-mesi-list').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+function caricaAdminData(){
+  var el=document.getElementById('a-mesi-list');
+  el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getRiepilogoAnno',{anno:state.anno}).then(function(r){
-    if (!r||!r.ok) return;
-    state.riepilogoMese = { ore: r.totOre, euro: r.totEuro, giorni: r.totGiorni, tariffa: r.tariffa };
-    document.getElementById('a-ore-anno').textContent    = Number(r.totOre).toFixed(2);
-    document.getElementById('a-euro-anno').textContent   = '€ '+Number(r.totEuro).toFixed(2);
-    document.getElementById('a-giorni-anno').textContent = r.totGiorni+' gg';
-    document.getElementById('a-tariffa').textContent     = '€ '+Number(r.tariffa).toFixed(2)+'/h';
-    document.getElementById('a-mesi-list').innerHTML = r.mesi.map(function(m){
-      var chiuso = state.mesiChiusi[m.mese] ? '<span class="badge-chiuso">Chiuso</span>' : '';
+    if(!r||!r.ok)return;
+    document.getElementById('a-ore-anno').textContent=Number(r.totOre).toFixed(2);
+    document.getElementById('a-euro-anno').textContent='€ '+Number(r.totEuro).toFixed(2);
+    document.getElementById('a-giorni-anno').textContent=r.totGiorni+' gg';
+    document.getElementById('a-tariffa').textContent='€ '+Number(r.tariffa).toFixed(2)+'/h';
+    el.innerHTML=r.mesi.map(function(m){
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
-        +'<div><div style="font-size:14px;font-weight:500;">'+m.mese+chiuso+'</div>'
+        +'<div><div style="font-size:14px;font-weight:500;">'+m.mese+'</div>'
         +'<div style="font-size:12px;color:var(--text2);">'+m.giorni+' giorni · '+Number(m.ore).toFixed(1)+'h</div></div>'
         +'<div style="font-family:var(--mono);font-weight:600;color:var(--accent);">€ '+Number(m.euro).toFixed(2)+'</div></div>';
     }).join('');
-    // Carica stati mesi chiusi
-    caricaStatoMese(getMeseNome(), function(){
-      caricaStatoMese(getMesePrecedenteNome(), function(){
-        aggiornaPulsanteChiudiMese();
-      });
-    });
   });
 }
 
-function showModificaTariffa() { document.getElementById('new-tariffa').value=7; openModal('tariffa'); }
+function showModificaTariffa(){document.getElementById('new-tariffa').value=7;openModal('tariffa');}
 
-function salvaTariffa() {
-  var val = parseFloat(document.getElementById('new-tariffa').value);
-  if (!val||val<=0) { toast('⚠ Tariffa non valida'); return; }
+function salvaTariffa(){
+  var val=parseFloat(document.getElementById('new-tariffa').value);
+  if(!val||val<=0){toast('⚠ Tariffa non valida');return;}
   apiCall('aggiornaTariffa',{tariffa:val,mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if (r&&r.ok) { closeModal('modal-tariffa'); toast('✓ Tariffa aggiornata a € '+val.toFixed(2)); caricaAdminData(); }
+    if(r&&r.ok){closeModal('modal-tariffa');toast('✓ Tariffa aggiornata a € '+val.toFixed(2));caricaAdminData();}
     else toast('⚠ Errore');
   });
 }
 
-function showGestisciLuoghi() {
-  var lista = document.getElementById('lista-luoghi-admin');
-  lista.innerHTML = state.luoghi.map(function(l,i){
+function showGestisciLuoghi(){
+  var lista=document.getElementById('lista-luoghi-admin');
+  lista.innerHTML=state.luoghi.map(function(l,i){
     return '<div style="display:flex;align-items:center;gap:10px;">'
       +'<div style="flex:1;padding:10px 14px;background:var(--bg2);border-radius:8px;font-size:14px;">'+l+'</div>'
       +'<button data-idx="'+i+'" class="btn-rm-luogo" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;">✕</button></div>';
   }).join('');
   lista.querySelectorAll('.btn-rm-luogo').forEach(function(btn){
-    btn.addEventListener('click',function(){ rimuoviLuogo(parseInt(btn.dataset.idx)); });
+    btn.addEventListener('click',function(){rimuoviLuogo(parseInt(btn.dataset.idx));});
   });
   document.getElementById('nuovo-luogo').value='';
   openModal('luoghi');
 }
 
-function aggiungiLuogo() {
-  var val = document.getElementById('nuovo-luogo').value.trim();
-  if (!val) return;
-  if (state.luoghi.indexOf(val)>=0) { toast('Luogo già presente'); return; }
-  state.luoghi.push(val); popolaTagsLuoghi(); showGestisciLuoghi(); toast('✓ Luogo aggiunto');
+function aggiungiLuogo(){
+  var val=document.getElementById('nuovo-luogo').value.trim();
+  if(!val)return;
+  if(state.luoghi.indexOf(val)>=0){toast('Luogo già presente');return;}
+  state.luoghi.push(val);popolaTagsLuoghi();showGestisciLuoghi();toast('✓ Luogo aggiunto');
 }
 
-function rimuoviLuogo(idx) { state.luoghi.splice(idx,1); popolaTagsLuoghi(); showGestisciLuoghi(); }
+function rimuoviLuogo(idx){state.luoghi.splice(idx,1);popolaTagsLuoghi();showGestisciLuoghi();}
 
-function showGiornoMax() {
+function showGiornoMax(){
   apiCall('getGiornoMax',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    var el = document.getElementById('giorno-max-content');
-    if (!r||!r.ok||!r.data) { el.innerHTML='<p style="color:var(--text2)">Nessun dato disponibile</p>'; }
-    else { el.innerHTML=
-      '<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
+    var el=document.getElementById('giorno-max-content');
+    if(!r||!r.ok||!r.data){el.innerHTML='<p style="color:var(--text2)">Nessun dato disponibile</p>';}
+    else{el.innerHTML='<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
       +'<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.ore).toFixed(1)+'</div></div>'
-      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>'; }
+      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>';}
     openModal('giorno-max');
   });
 }
 
-function inviaRiepilogoMensile() {
+function inviaRiepilogoMensile(){
   toast('⏳ Invio in corso...');
   apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'mensile'}).then(function(r){
-    toast(r&&r.ok ? '✉ Riepilogo inviato' : '⚠ Errore invio');
+    toast(r&&r.ok?'✉ Riepilogo inviato':'⚠ Errore invio');
   });
 }
 
-// ============================================================
-// EVENT LISTENERS
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('v-data').value = todayISO();
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('v-data').value=todayISO();
   popolaTagsLuoghi();
-
-  // Google Sign-In
-  initGoogleSignIn();
-
-  // Logout
-  document.getElementById('btn-logout-utente').addEventListener('click', logout);
-  document.getElementById('btn-logout-admin').addEventListener('click', logout);
-
-  // Home utente
-  document.getElementById('btn-nuova-voce-home').addEventListener('click', showNuovaVoce);
-  document.getElementById('btn-vai-voci').addEventListener('click', function(){ switchTab('voci'); });
-  document.getElementById('btn-annulla-ultima').addEventListener('click', annullaUltimaVoce);
-  document.getElementById('btn-invia-email-utente').addEventListener('click', inviaEmailUtente);
-  document.getElementById('btn-esporta-pdf-utente').addEventListener('click', esportaPDF);
-  document.getElementById('btn-chiudi-mese').addEventListener('click', showChiudiMese);
-
-  // Bottom nav
-  document.getElementById('nav-home').addEventListener('click', function(){ switchTab('home'); });
-  document.getElementById('nav-voci').addEventListener('click', function(){ switchTab('voci'); });
-  document.getElementById('nav-riepilogo').addEventListener('click', function(){ switchTab('riepilogo'); });
-  document.getElementById('nav-nuovo').addEventListener('click', showNuovaVoce);
-
-  // Filtro mesi
-  document.getElementById('filtro-mese').addEventListener('change', caricaVoci);
-
-  // Modal voce
-  document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
-  document.getElementById('btn-ore-piu').addEventListener('click',  function(){ adjustOre(0.5); });
-  document.getElementById('btn-annulla-voce').addEventListener('click', function(){ closeModal('modal-voce'); });
-  document.getElementById('btn-salva-voce').addEventListener('click', salvaVoce);
-
-  // Admin
-  document.getElementById('btn-modifica-tariffa').addEventListener('click', showModificaTariffa);
-  document.getElementById('btn-gestisci-luoghi').addEventListener('click', showGestisciLuoghi);
-  document.getElementById('btn-giorno-max').addEventListener('click', showGiornoMax);
-  document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
-  document.getElementById('btn-esporta-pdf-admin').addEventListener('click', esportaPDF);
-  document.getElementById('btn-chiudi-mese-admin').addEventListener('click', showChiudiMese);
-
-  // Modal tariffa
-  document.getElementById('btn-annulla-tariffa').addEventListener('click', function(){ closeModal('modal-tariffa'); });
-  document.getElementById('btn-salva-tariffa').addEventListener('click', salvaTariffa);
-
-  // Modal luoghi
-  document.getElementById('btn-aggiungi-luogo').addEventListener('click', aggiungiLuogo);
-  document.getElementById('btn-chiudi-luoghi').addEventListener('click', function(){ closeModal('modal-luoghi'); });
-
-  // Modal giorno max
-  document.getElementById('btn-chiudi-giorno-max').addEventListener('click', function(){ closeModal('modal-giorno-max'); });
-
-  // Modal chiudi mese
-  document.getElementById('btn-annulla-chiudi').addEventListener('click', function(){ closeModal('modal-chiudi-mese'); });
-  document.getElementById('btn-conferma-chiudi').addEventListener('click', confermaChiudiMese);
+  document.getElementById('btn-login-utente').addEventListener('click',loginUtente);
+  document.getElementById('btn-login-admin').addEventListener('click',showAdminPin);
+  document.getElementById('btn-logout-utente').addEventListener('click',logoutUtente);
+  document.getElementById('btn-logout-admin').addEventListener('click',logoutAdmin);
+  document.getElementById('btn-nuova-voce-home').addEventListener('click',showNuovaVoce);
+  document.getElementById('btn-vai-voci').addEventListener('click',function(){switchTab('voci');});
+  document.getElementById('btn-annulla-ultima').addEventListener('click',annullaUltimaVoce);
+  document.getElementById('btn-invia-email-utente').addEventListener('click',inviaEmailUtente);
+  document.getElementById('btn-esporta-pdf-utente').addEventListener('click',esportaPDF);
+  document.getElementById('nav-home').addEventListener('click',function(){switchTab('home');});
+  document.getElementById('nav-voci').addEventListener('click',function(){switchTab('voci');});
+  document.getElementById('nav-riepilogo').addEventListener('click',function(){switchTab('riepilogo');});
+  document.getElementById('nav-nuovo').addEventListener('click',showNuovaVoce);
+  document.getElementById('filtro-mese').addEventListener('change',caricaVoci);
+  document.getElementById('btn-ore-meno').addEventListener('click',function(){adjustOre(-0.5);});
+  document.getElementById('btn-ore-piu').addEventListener('click',function(){adjustOre(0.5);});
+  document.getElementById('btn-annulla-voce').addEventListener('click',function(){closeModal('modal-voce');});
+  document.getElementById('btn-salva-voce').addEventListener('click',salvaVoce);
+  document.querySelectorAll('.pin-key[data-pin]').forEach(function(btn){
+    btn.addEventListener('click',function(){pinTap(btn.dataset.pin);});
+  });
+  document.getElementById('pin-canc').addEventListener('click',pinClear);
+  document.getElementById('pin-del').addEventListener('click',pinDel);
+  document.getElementById('btn-modifica-tariffa').addEventListener('click',showModificaTariffa);
+  document.getElementById('btn-gestisci-luoghi').addEventListener('click',showGestisciLuoghi);
+  document.getElementById('btn-giorno-max').addEventListener('click',showGiornoMax);
+  document.getElementById('btn-invia-riepilogo').addEventListener('click',inviaRiepilogoMensile);
+  document.getElementById('btn-esporta-pdf-admin').addEventListener('click',esportaPDF);
+  document.getElementById('btn-annulla-tariffa').addEventListener('click',function(){closeModal('modal-tariffa');});
+  document.getElementById('btn-salva-tariffa').addEventListener('click',salvaTariffa);
+  document.getElementById('btn-aggiungi-luogo').addEventListener('click',aggiungiLuogo);
+  document.getElementById('btn-chiudi-luoghi').addEventListener('click',function(){closeModal('modal-luoghi');});
+  document.getElementById('btn-chiudi-giorno-max').addEventListener('click',function(){closeModal('modal-giorno-max');});
 });
 </script>
 </body>
