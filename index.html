@@ -469,6 +469,8 @@ function caricaUltimeVoci() {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
       return;
     }
+    // Salva il mese dentro ogni voce per usarlo durante la modifica
+    r.voci.forEach(function(v){ v.mese = getMeseNome(); });
     state.voci=r.voci;
     el.innerHTML=r.voci.slice(-5).reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item) {
@@ -509,6 +511,11 @@ function caricaVoci() {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
       return;
     }
+    // Salva il mese dentro ogni voce per usarlo durante la modifica
+    var mIdx2=parseInt(document.getElementById('filtro-mese').value);
+    r.voci.forEach(function(v){ v.mese = MESI[mIdx2]; });
+    // Aggiorna state.voci con le voci del mese selezionato
+    state.voci = state.voci.filter(function(v){ return v.mese !== MESI[mIdx2]; }).concat(r.voci);
     el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item){
       item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
@@ -588,7 +595,13 @@ function salvaVoce() {
   var btn=document.getElementById('btn-salva-voce');
   btn.textContent='Salvataggio...'; btn.disabled=true;
   var action=state.editingRow?'aggiornaVoce':'salvaVoce';
-  var payload={mese:getMeseNome(),anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
+  // Per la modifica usa il mese della voce originale, non il mese corrente
+  var meseVoce = getMeseNome();
+  if (state.editingRow) {
+    var vOrigine = state.voci.find(function(x){ return x.riga===state.editingRow; });
+    if (vOrigine && vOrigine.mese) meseVoce = vOrigine.mese;
+  }
+  var payload={mese:meseVoce,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
   if(state.editingRow) payload.riga=state.editingRow;
   apiCall(action,payload).then(function(r){
     btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
