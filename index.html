@@ -293,7 +293,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw6_xYNyq0zpF_5vCcm8PTvviXPIHNbLkmjCrxxcnU-cWXWBcX6UXvV4IIqLauHp4VFtA/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5yql6uNndcR-i11MOK_QP81Uqi0ry7IonbJ6v2f5lByzsEb_h7OFlULo-CN0oJWcXTA/exec";
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
@@ -332,28 +332,18 @@ function formatDate(d)  { if(!d) return ''; var p=d.split('-'); return p[2]+'/'+
 function todayISO()     { return new Date().toISOString().split('T')[0]; }
 function getMeseNome()  { return MESI[state.meseCorrente]; }
 
-// Converte data ISO "yyyy-MM-dd" in numero seriale Excel/Sheets
-function dataToSerial(isoStr) {
-  if (!isoStr) return isoStr;
-  var parts = isoStr.split('-');
-  if (parts.length !== 3) return isoStr;
-  // Data di riferimento Excel: 1 gennaio 1900 = seriale 1
-  // JavaScript usa millisecondi dal 1 gennaio 1970
-  var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-  var excelEpoch = new Date(1899, 11, 30); // 30 dic 1899
-  var serial = Math.round((d - excelEpoch) / 86400000);
-  return serial;
-}
-
 function apiCall(action, payload) {
   return new Promise(function(resolve) {
     if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "INCOLLA_QUI_URL_WEB_APP") {
       resolve(demoData(action)); return;
     }
     var data = Object.assign({ action: action }, payload || {});
-    // Converte data in numero seriale se presente
+    // Manda giorno/mese/anno come numeri interi separati — nessuna conversione fuso
     if (data.data) {
-      data.dataSerial = dataToSerial(data.data);
+      var parts = String(data.data).split('-');
+      data.dataAnno  = parseInt(parts[0]);
+      data.dataMese  = parseInt(parts[1]);
+      data.dataGiorno = parseInt(parts[2]);
     }
     var params = Object.keys(data).map(function(k){
       return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
