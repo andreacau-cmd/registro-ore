@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Registro Ore</title>
-<script src="https://accounts.google.com/gsi/client"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;--text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
 @media(prefers-color-scheme:dark){:root{--bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;--text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--danger:#e05555;--pill-bg:#1e2d46;--pill-text:#7aadee;--shadow:0 2px 16px rgba(0,0,0,0.4);}}
@@ -88,9 +88,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div style="font-size:48px;margin-bottom:16px;">📋</div>
     <h1 style="font-size:24px;font-weight:600;margin-bottom:6px;">Registro Ore</h1>
     <p style="color:var(--text2);font-size:14px;margin-bottom:40px;">Accedi con il tuo account Google</p>
-    <div id="google-signin-btn" style="display:flex;justify-content:center;margin-bottom:16px;min-height:44px;"></div>
-    <div id="login-error" style="color:var(--danger);font-size:13px;text-align:center;min-height:20px;margin-top:8px;"></div>
-    <p style="margin-top:30px;font-size:12px;color:var(--text2);">Versione 0.04 — 2026</p>
+    <div id="google-signin-btn" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
+    <div id="login-error" style="color:var(--danger);font-size:13px;text-align:center;min-height:20px;"></div>
+    <p style="margin-top:30px;font-size:12px;color:var(--text2);">Versione 1.0 — 2026</p>
   </div>
 </div>
 
@@ -107,7 +107,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value" id="u-ore-tot">—</div></div>
         <div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro" id="u-euro-tot">—</div></div>
         <div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small" id="u-giorni">—</div></div>
-        <div class="stat" style="position:relative;"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div><button id="btn-cambia-tariffa-utente" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;">cambia</button></div>
+        <div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div></div>
       </div>
     </div>
     <div class="card">
@@ -120,7 +120,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         </div>
         <div class="btn-grid">
           <button class="btn btn-secondary" id="btn-invia-email-utente"><span>✉</span> Invia email</button>
-          <button class="btn btn-secondary" id="btn-condividi-pdf"><span>📤</span> Condividi PDF</button>
+          <button class="btn btn-secondary" id="btn-esporta-pdf-utente"><span>📄</span> Esporta PDF</button>
         </div>
       </div>
     </div>
@@ -190,7 +190,32 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- PIN rimosso - usa Google OAuth -->
+<!-- MODAL PIN -->
+<div class="modal-overlay" id="modal-pin">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="text-align:center;">🔐 PIN Amministratore</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-pad" style="margin-top:10px;">
+      <button class="pin-key" data-pin="1">1</button>
+      <button class="pin-key" data-pin="2">2</button>
+      <button class="pin-key" data-pin="3">3</button>
+      <button class="pin-key" data-pin="4">4</button>
+      <button class="pin-key" data-pin="5">5</button>
+      <button class="pin-key" data-pin="6">6</button>
+      <button class="pin-key" data-pin="7">7</button>
+      <button class="pin-key" data-pin="8">8</button>
+      <button class="pin-key" data-pin="9">9</button>
+      <button class="pin-key" id="pin-canc" style="font-size:14px;">Canc</button>
+      <button class="pin-key" data-pin="0">0</button>
+      <button class="pin-key" id="pin-del">⌫</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL VOCE -->
 <div class="modal-overlay" id="modal-voce">
@@ -264,12 +289,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="toast"></div>
 
 <script>
+// ============================================================
+// CONFIG — MODIFICA QUI
+// ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbzPc78blooDiqhIOb9mhYQNuB4ZfvGoUwktlnTVaVMJlOgj1wARUXcTie9MTgRwwnkbpg/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzPc78blooDiqhIOb9mhYQNuB4ZfvGoUwktlnTVaVMJlOgj1wARUXcTie9MTgRwwnkbpg/exec";
+
+// EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
-  "andrea.cau.import@gmail.com": "admin",
-  "blackjad555@gmail.com": "utente"
+  "andrea.cau.import@gmail.com":  "admin",
+  "blackjad555@gmail.com": "utente",
+  "INCOLLA_EMAIL_UTENTE2@gmail.com": "utente",
+  "INCOLLA_EMAIL_UTENTE3@gmail.com": "utente"
 };
+
 var LUOGHI_DEFAULT = ["Subburra","Via Cavur 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonina"];
 var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
 
@@ -283,32 +316,64 @@ var state = {
   pinBuffer: ""
 };
 
-function toast(msg,dur){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},dur||2500);}
-function showScreen(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById('screen-'+id).classList.add('active');}
-function openModal(id){document.getElementById('modal-'+id).classList.add('open');}
-function closeModal(id){document.getElementById('modal-'+id).classList.remove('open');}
-function formatDate(d){if(!d)return'';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
-function todayISO(){return new Date().toISOString().split('T')[0];}
-function getMeseNome(){return MESI[state.meseCorrente];}
+function toast(msg, dur) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, dur || 2500);
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function openModal(id)  { document.getElementById('modal-'+id).classList.add('open'); }
+function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+function formatDate(d)  { if(!d) return ''; var p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function todayISO()     { return new Date().toISOString().split('T')[0]; }
+function getMeseNome()  { return MESI[state.meseCorrente]; }
 
-function apiCall(action,payload){
-  return new Promise(function(resolve){
-    var data=Object.assign({action:action},payload||{});
-    if(data.data){
-      var parts=String(data.data).split('-');
-      data.dataAnno=parseInt(parts[0]);
-      data.dataMese=parseInt(parts[1]);
-      data.dataGiorno=parseInt(parts[2]);
+function apiCall(action, payload) {
+  return new Promise(function(resolve) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === "INCOLLA_QUI_URL_WEB_APP") {
+      resolve(demoData(action)); return;
     }
-    var params=Object.keys(data).map(function(k){
-      return encodeURIComponent(k)+'='+encodeURIComponent(typeof data[k]==='object'?JSON.stringify(data[k]):data[k]);
+    var data = Object.assign({ action: action }, payload || {});
+    // Manda giorno/mese/anno come interi separati — nessuna conversione fuso orario
+    if (data.data) {
+      var parts = String(data.data).split('-');
+      data.dataAnno   = parseInt(parts[0]);
+      data.dataMese   = parseInt(parts[1]);
+      data.dataGiorno = parseInt(parts[2]);
+    }
+    var params = Object.keys(data).map(function(k){
+      return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
     }).join('&');
-    fetch(APPS_SCRIPT_URL+'?'+params,{method:'GET',redirect:'follow'})
-    .then(function(r){return r.json();}).then(resolve)
-    .catch(function(){toast('⚠ Errore connessione');resolve({ok:false});});
+    var url = APPS_SCRIPT_URL + '?' + params;
+    fetch(url, { method:'GET', redirect:'follow' })
+    .then(function(r){ return r.json(); }).then(resolve)
+    .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
   });
 }
 
+function demoData(action) {
+  var v = [
+    {riga:4,data:'2026-03-03',ore:2,luogo:'Via Cavur 248',note:''},
+    {riga:5,data:'2026-03-03',ore:1,luogo:'Tiburtina',note:'con Patrizia'},
+    {riga:6,data:'2026-03-10',ore:2,luogo:'San Paolo OIS',note:''},
+    {riga:7,data:'2026-03-12',ore:1.5,luogo:'Via G. Lanza 146',note:''}
+  ];
+  if(action==='getVoci') return {ok:true,voci:v};
+  if(action==='getRiepilogoMese') return {ok:true,giorni:4,ore:6.5,euro:45.5,tariffa:7};
+  if(action==='getRiepilogoAnno') return {ok:true,
+    mesi:MESI.map(function(m,i){return {mese:m,giorni:i===2?4:0,ore:i===2?6.5:0,euro:i===2?45.5:0};}),
+    totOre:6.5,totEuro:45.5,totGiorni:4,tariffa:7};
+  if(action==='getGiornoMax') return {ok:true,data:'2026-03-03',ore:3,luoghi:['Via Cavur 248','Tiburtina']};
+  return {ok:true};
+}
+
+// ============================================================
+// GOOGLE OAUTH
+// ============================================================
 function initGoogleSignIn() {
   google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
@@ -316,21 +381,26 @@ function initGoogleSignIn() {
   });
   google.accounts.id.renderButton(
     document.getElementById('google-signin-btn'),
-    { theme:'outline', size:'large', text:'signin_with', locale:'it' }
+    { theme: 'outline', size: 'large', text: 'signin_with', locale: 'it' }
   );
 }
 
 function handleGoogleLogin(response) {
+  // Decodifica il JWT token di Google
   var payload = JSON.parse(atob(response.credential.split('.')[1]));
-  var email   = payload.email;
-  var ruolo   = UTENTI_AUTORIZZATI[email];
+  var email = payload.email;
+  var nome = payload.name;
+  var ruolo = UTENTI_AUTORIZZATI[email];
+
   if (!ruolo) {
-    document.getElementById('login-error').textContent = '⚠ Account non autorizzato: '+email;
+    document.getElementById('login-error').textContent = '⚠ Account non autorizzato: ' + email;
     return;
   }
+
   state.ruolo = ruolo;
   state.email = email;
-  state.nome  = payload.name;
+  state.nome = nome;
+
   if (ruolo === 'admin') {
     showScreen('admin');
     caricaAdminData();
@@ -345,7 +415,7 @@ function handleGoogleLogin(response) {
 
 function logoutUtente() {
   google.accounts.id.disableAutoSelect();
-  state.ruolo=null; state.email=null; state.voci=[];
+  state.ruolo=null; state.email=null;
   showScreen('login');
 }
 function logoutAdmin() {
@@ -354,81 +424,103 @@ function logoutAdmin() {
   showScreen('login');
 }
 
-function caricaHomeUtente(){
-  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if(r&&r.ok){
-      document.getElementById('u-ore-tot').textContent=Number(r.ore).toFixed(2);
-      document.getElementById('u-euro-tot').textContent='€ '+Number(r.euro).toFixed(2);
-      document.getElementById('u-giorni').textContent=r.giorni+' gg';
-      document.getElementById('u-tariffa').textContent='€ '+Number(r.tariffa).toFixed(2)+'/h';
+function showAdminPin() {
+  state.pinBuffer='';
+  aggiornaDotsPin();
+  document.getElementById('pin-error').textContent='';
+  openModal('pin');
+}
+function pinTap(c) {
+  if(state.pinBuffer.length>=4) return;
+  state.pinBuffer+=c;
+  aggiornaDotsPin();
+  if(state.pinBuffer.length===4) setTimeout(verificaPin,200);
+}
+function pinDel()   { state.pinBuffer=state.pinBuffer.slice(0,-1); aggiornaDotsPin(); }
+function pinClear() { state.pinBuffer=''; aggiornaDotsPin(); }
+function aggiornaDotsPin() {
+  for(var i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<state.pinBuffer.length);
+}
+function verificaPin() {
+  if(state.pinBuffer===ADMIN_PIN) {
+    closeModal('pin'); state.ruolo='admin'; showScreen('admin'); caricaAdminData();
+  } else {
+    document.getElementById('pin-error').textContent='PIN non corretto';
+    state.pinBuffer=''; aggiornaDotsPin();
+  }
+}
+
+function caricaHomeUtente() {
+  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
+    if(r&&r.ok) {
+      document.getElementById('u-ore-tot').textContent  = Number(r.ore).toFixed(2);
+      document.getElementById('u-euro-tot').textContent = '€ '+Number(r.euro).toFixed(2);
+      document.getElementById('u-giorni').textContent   = r.giorni+' gg';
+      document.getElementById('u-tariffa').textContent  = '€ '+Number(r.tariffa).toFixed(2)+'/h';
     }
     caricaUltimeVoci();
   });
 }
 
-function caricaUltimeVoci(){
-  apiCall('getVoci',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+function caricaUltimeVoci() {
+  apiCall('getVoci',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
     var el=document.getElementById('u-ultime-voci');
-    if(!r||!r.ok||!r.voci||!r.voci.length){
+    if(!r||!r.ok||!r.voci||!r.voci.length) {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
       return;
     }
-    r.voci.forEach(function(v){v.mese=getMeseNome();v.uid=getMeseNome()+':'+v.riga;});
-    state.voci=state.voci.filter(function(v){return v.mese!==getMeseNome();}).concat(r.voci);
+    state.voci=r.voci;
     el.innerHTML=r.voci.slice(-5).reverse().map(voceHTML).join('');
-    el.querySelectorAll('.voce-item').forEach(function(item){
-      item.addEventListener('click',function(){editVoce(item.dataset.uid);});
+    el.querySelectorAll('.voce-item').forEach(function(item) {
+      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
     });
   });
 }
 
-function voceHTML(v){
-  return '<div class="voce-item" data-riga="'+v.riga+'" data-uid="'+v.uid+'">'
+function voceHTML(v) {
+  return '<div class="voce-item" data-riga="'+v.riga+'">'
     +'<div class="voce-date">'+formatDate(v.data)+'</div>'
     +'<div class="voce-body"><div class="voce-luogo">'+(v.luogo||'—')+'</div>'
     +(v.note?'<div class="voce-note">'+v.note+'</div>':'')
     +'</div><div class="voce-ore">'+Number(v.ore).toFixed(1)+'h</div></div>';
 }
 
-function switchTab(tab){
-  document.querySelectorAll('.scroll').forEach(function(s){s.style.display='none';});
-  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+function switchTab(tab) {
+  document.querySelectorAll('.scroll').forEach(function(s){ s.style.display='none'; });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
   document.getElementById('tab-'+tab).style.display='flex';
   document.getElementById('nav-'+tab).classList.add('active');
-  if(tab==='voci')caricaVoci();
-  if(tab==='riepilogo')caricaRiepilogoDettaglio();
+  if(tab==='voci') caricaVoci();
+  if(tab==='riepilogo') caricaRiepilogoDettaglio();
 }
 
-function popolaFiltroMesi(){
+function popolaFiltroMesi() {
   document.getElementById('filtro-mese').innerHTML=MESI.map(function(m,i){
     return '<option value="'+i+'"'+(i===state.meseCorrente?' selected':'')+'>'+m+'</option>';
   }).join('');
 }
 
-function caricaVoci(){
+function caricaVoci() {
   var mIdx=parseInt(document.getElementById('filtro-mese').value);
-  var mese=MESI[mIdx];
   var el=document.getElementById('lista-voci');
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
-  apiCall('getVoci',{mese:mese,anno:state.anno}).then(function(r){
-    if(!r||!r.ok||!r.voci||!r.voci.length){
+  apiCall('getVoci',{mese:MESI[mIdx],anno:state.anno}).then(function(r) {
+    if(!r||!r.ok||!r.voci||!r.voci.length) {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
       return;
     }
-    r.voci.forEach(function(v){v.mese=mese;v.uid=mese+':'+v.riga;});
-    state.voci=state.voci.filter(function(v){return v.mese!==mese;}).concat(r.voci);
     el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item){
-      item.addEventListener('click',function(){editVoce(item.dataset.uid);});
+      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
     });
   });
 }
 
-function caricaRiepilogoDettaglio(){
+function caricaRiepilogoDettaglio() {
   var el=document.getElementById('riepilogo-content');
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
-  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if(!r||!r.ok)return;
+  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
+    if(!r||!r.ok) return;
     el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
       +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
       +'<div class="stat"><div class="stat-label">Totale ore</div><div class="stat-value">'+Number(r.ore).toFixed(2)+'</div></div>'
@@ -440,10 +532,22 @@ function caricaRiepilogoDettaglio(){
   });
 }
 
-function editVoce(uid){
-  var v=state.voci.find(function(x){return x.uid===uid;});
-  if(!v)return;
-  state.editingRow=uid;
+function showNuovaVoce() {
+  state.editingRow=null;
+  document.getElementById('modal-voce-title').textContent='Nuova voce';
+  document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Salva voce';
+  document.getElementById('v-data').value=todayISO();
+  document.getElementById('v-ore').value='2';
+  document.getElementById('v-luogo').value='';
+  document.getElementById('v-note').value='';
+  document.querySelectorAll('#luoghi-tags .tag').forEach(function(t){ t.classList.remove('selected'); });
+  openModal('voce');
+}
+
+function editVoce(riga) {
+  var v=state.voci.find(function(x){ return x.riga===riga; });
+  if(!v) return;
+  state.editingRow=riga;
   document.getElementById('modal-voce-title').textContent='Modifica voce';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
   document.getElementById('v-data').value=v.data;
@@ -453,32 +557,20 @@ function editVoce(uid){
   openModal('voce');
 }
 
-function showNuovaVoce(){
-  state.editingRow=null;
-  document.getElementById('modal-voce-title').textContent='Nuova voce';
-  document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Salva voce';
-  document.getElementById('v-data').value=todayISO();
-  document.getElementById('v-ore').value='2';
-  document.getElementById('v-luogo').value='';
-  document.getElementById('v-note').value='';
-  document.querySelectorAll('#luoghi-tags .tag').forEach(function(t){t.classList.remove('selected');});
-  openModal('voce');
-}
-
-function adjustOre(delta){
+function adjustOre(delta) {
   var inp=document.getElementById('v-ore');
   var val=Math.round((parseFloat(inp.value||0)+delta)*2)/2;
   inp.value=Math.max(0.5,Math.min(24,val));
 }
 
-function popolaTagsLuoghi(){
+function popolaTagsLuoghi() {
   var cont=document.getElementById('luoghi-tags');
   cont.innerHTML=state.luoghi.map(function(l){
     return '<div class="tag" data-luogo="'+l+'">'+l+'</div>';
   }).join('');
   cont.querySelectorAll('.tag').forEach(function(tag){
     tag.addEventListener('click',function(){
-      cont.querySelectorAll('.tag').forEach(function(t){t.classList.remove('selected');});
+      cont.querySelectorAll('.tag').forEach(function(t){ t.classList.remove('selected'); });
       tag.classList.add('selected');
       document.getElementById('v-luogo').value=tag.dataset.luogo;
     });
@@ -494,94 +586,69 @@ function caricaLuoghiDaFoglio() {
   });
 }
 
-function salvaVoce(){
+function salvaVoce() {
   var data=document.getElementById('v-data').value;
   var ore=parseFloat(document.getElementById('v-ore').value);
   var luogo=document.getElementById('v-luogo').value.trim();
   var note=document.getElementById('v-note').value.trim();
-  if(!data){toast('⚠ Inserisci una data');return;}
-  if(!ore||ore<=0){toast('⚠ Inserisci le ore');return;}
-  if(!luogo){toast('⚠ Inserisci il luogo');return;}
+  if(!data)         { toast('⚠ Inserisci una data'); return; }
+  if(!ore||ore<=0)  { toast('⚠ Inserisci le ore');   return; }
+  if(!luogo)        { toast('⚠ Inserisci il luogo'); return; }
   var btn=document.getElementById('btn-salva-voce');
-  btn.textContent='Salvataggio...';btn.disabled=true;
+  btn.textContent='Salvataggio...'; btn.disabled=true;
   var action=state.editingRow?'aggiornaVoce':'salvaVoce';
-  var meseTarget=getMeseNome();
-  var rigaTarget=null;
-  if(state.editingRow){
-    var vOrig=state.voci.find(function(x){return x.uid===state.editingRow;});
-    if(vOrig){meseTarget=vOrig.mese;rigaTarget=vOrig.riga;}
-  }
-  var payload={mese:meseTarget,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
-  if(rigaTarget)payload.riga=rigaTarget;
+  var payload={mese:getMeseNome(),anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
+  if(state.editingRow) payload.riga=state.editingRow;
   apiCall(action,payload).then(function(r){
-    btn.innerHTML='<span>✓</span> Salva voce';btn.disabled=false;
-    if(r&&r.ok){closeModal('modal-voce');toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata');caricaHomeUtente();}
+    btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
+    if(r&&r.ok) { closeModal('voce'); toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata'); caricaHomeUtente(); }
     else toast('⚠ Errore nel salvataggio');
   });
 }
 
-function annullaUltimaVoce(){
-  var vociMese=state.voci.filter(function(v){return v.mese===getMeseNome();});
-  if(!vociMese.length){toast('Nessuna voce da annullare');return;}
-  var ultima=vociMese[vociMese.length-1];
-  if(!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?'))return;
+function annullaUltimaVoce() {
+  if(!state.voci.length) { toast('Nessuna voce da annullare'); return; }
+  var ultima=state.voci[state.voci.length-1];
+  if(!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?')) return;
   apiCall('eliminaVoce',{mese:getMeseNome(),anno:state.anno,riga:ultima.riga}).then(function(r){
-    if(r&&r.ok){toast('↩ Ultima voce annullata');caricaHomeUtente();}
+    if(r&&r.ok) { toast('↩ Ultima voce annullata'); caricaHomeUtente(); }
     else toast('⚠ Errore');
   });
 }
 
-function showModificaTariffaUtente() {
-  var tariffa = document.getElementById('u-tariffa').textContent.replace('€ ','').replace('/h','').trim();
-  document.getElementById('new-tariffa').value = parseFloat(tariffa) || 7;
-  openModal('tariffa');
-}
-
-function condividiPDF() {
-  toast('⏳ Generazione PDF...');
-  apiCall('getPdfUrl', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
-    if (!r || !r.ok || !r.url) { toast('⚠ Errore generazione PDF'); return; }
-    if (navigator.share) {
-      navigator.share({
-        title: 'Registro Ore ' + getMeseNome() + ' ' + state.anno,
-        text: 'Riepilogo ore lavoro ' + getMeseNome() + ' ' + state.anno,
-        url: r.url
-      }).catch(function() {});
-    } else {
-      var a = document.createElement('a');
-      a.href=r.url; a.target='_blank'; a.rel='noopener';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
-  });
-}
-
-function inviaEmailUtente(){
+function inviaEmailUtente() {
   toast('⏳ Invio in corso...');
   apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'utente'}).then(function(r){
     toast(r&&r.ok?'✉ Email inviata':'⚠ Errore invio');
   });
 }
 
-function esportaPDF(){
+function esportaPDF() {
   toast('📄 Apertura PDF...');
   apiCall('getPdfUrl',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if(r&&r.ok&&r.url){
-      var a=document.createElement('a');
-      a.href=r.url;a.target='_blank';a.rel='noopener';
-      document.body.appendChild(a);a.click();document.body.removeChild(a);
-    }else toast('⚠ Errore export PDF');
+    if(r&&r.ok&&r.url) {
+      // Su mobile window.open dentro .then() viene bloccato
+      // Usiamo un link <a> cliccato subito — funziona su tutti i browser
+      var a = document.createElement('a');
+      a.href = r.url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else toast('⚠ Errore export PDF');
   });
 }
 
-function caricaAdminData(){
+function caricaAdminData() {
   var el=document.getElementById('a-mesi-list');
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getRiepilogoAnno',{anno:state.anno}).then(function(r){
-    if(!r||!r.ok)return;
-    document.getElementById('a-ore-anno').textContent=Number(r.totOre).toFixed(2);
-    document.getElementById('a-euro-anno').textContent='€ '+Number(r.totEuro).toFixed(2);
+    if(!r||!r.ok) return;
+    document.getElementById('a-ore-anno').textContent   =Number(r.totOre).toFixed(2);
+    document.getElementById('a-euro-anno').textContent  ='€ '+Number(r.totEuro).toFixed(2);
     document.getElementById('a-giorni-anno').textContent=r.totGiorni+' gg';
-    document.getElementById('a-tariffa').textContent='€ '+Number(r.tariffa).toFixed(2)+'/h';
+    document.getElementById('a-tariffa').textContent    ='€ '+Number(r.tariffa).toFixed(2)+'/h';
     el.innerHTML=r.mesi.map(function(m){
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
         +'<div><div style="font-size:14px;font-weight:500;">'+m.mese+'</div>'
@@ -591,18 +658,18 @@ function caricaAdminData(){
   });
 }
 
-function showModificaTariffa(){document.getElementById('new-tariffa').value=7;openModal('tariffa');}
+function showModificaTariffa() { document.getElementById('new-tariffa').value=7; openModal('tariffa'); }
 
-function salvaTariffa(){
+function salvaTariffa() {
   var val=parseFloat(document.getElementById('new-tariffa').value);
-  if(!val||val<=0){toast('⚠ Tariffa non valida');return;}
+  if(!val||val<=0) { toast('⚠ Tariffa non valida'); return; }
   apiCall('aggiornaTariffa',{tariffa:val,mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if(r&&r.ok){closeModal('modal-tariffa');toast('✓ Tariffa aggiornata a € '+val.toFixed(2));caricaAdminData();}
+    if(r&&r.ok) { closeModal('tariffa'); toast('✓ Tariffa aggiornata a € '+val.toFixed(2)); caricaAdminData(); }
     else toast('⚠ Errore');
   });
 }
 
-function showGestisciLuoghi(){
+function showGestisciLuoghi() {
   var lista=document.getElementById('lista-luoghi-admin');
   lista.innerHTML=state.luoghi.map(function(l,i){
     return '<div style="display:flex;align-items:center;gap:10px;">'
@@ -610,72 +677,91 @@ function showGestisciLuoghi(){
       +'<button data-idx="'+i+'" class="btn-rm-luogo" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;">✕</button></div>';
   }).join('');
   lista.querySelectorAll('.btn-rm-luogo').forEach(function(btn){
-    btn.addEventListener('click',function(){rimuoviLuogo(parseInt(btn.dataset.idx));});
+    btn.addEventListener('click',function(){ rimuoviLuogo(parseInt(btn.dataset.idx)); });
   });
   document.getElementById('nuovo-luogo').value='';
   openModal('luoghi');
 }
 
-function aggiungiLuogo(){
+function aggiungiLuogo() {
   var val=document.getElementById('nuovo-luogo').value.trim();
-  if(!val)return;
-  if(state.luoghi.indexOf(val)>=0){toast('Luogo già presente');return;}
-  state.luoghi.push(val);popolaTagsLuoghi();showGestisciLuoghi();toast('✓ Luogo aggiunto');
+  if(!val) return;
+  if(state.luoghi.indexOf(val)>=0) { toast('Luogo già presente'); return; }
+  state.luoghi.push(val); popolaTagsLuoghi(); showGestisciLuoghi(); toast('✓ Luogo aggiunto');
 }
 
-function rimuoviLuogo(idx){state.luoghi.splice(idx,1);popolaTagsLuoghi();showGestisciLuoghi();}
+function rimuoviLuogo(idx) { state.luoghi.splice(idx,1); popolaTagsLuoghi(); showGestisciLuoghi(); }
 
-function showGiornoMax(){
+function showGiornoMax() {
   apiCall('getGiornoMax',{mese:getMeseNome(),anno:state.anno}).then(function(r){
     var el=document.getElementById('giorno-max-content');
-    if(!r||!r.ok||!r.data){el.innerHTML='<p style="color:var(--text2)">Nessun dato disponibile</p>';}
-    else{el.innerHTML='<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
+    if(!r||!r.ok||!r.data) { el.innerHTML='<p style="color:var(--text2)">Nessun dato disponibile</p>'; }
+    else { el.innerHTML='<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
       +'<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.ore).toFixed(1)+'</div></div>'
-      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>';}
+      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>'; }
     openModal('giorno-max');
   });
 }
 
-function inviaRiepilogoMensile(){
+function inviaRiepilogoMensile() {
   toast('⏳ Invio in corso...');
   apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'mensile'}).then(function(r){
     toast(r&&r.ok?'✉ Riepilogo inviato':'⚠ Errore invio');
   });
 }
 
-document.addEventListener('DOMContentLoaded',function(){
-  document.getElementById('v-data').value=todayISO();
+// ============================================================
+// EVENT LISTENERS — tutti qui, zero onclick inline
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('v-data').value = todayISO();
   popolaTagsLuoghi();
-  initGoogleSignIn();
-  document.getElementById('btn-logout-utente').addEventListener('click',logoutUtente);
-  document.getElementById('btn-logout-admin').addEventListener('click',logoutAdmin);
-  document.getElementById('btn-nuova-voce-home').addEventListener('click',showNuovaVoce);
-  document.getElementById('btn-vai-voci').addEventListener('click',function(){switchTab('voci');});
-  document.getElementById('btn-annulla-ultima').addEventListener('click',annullaUltimaVoce);
-  document.getElementById('btn-invia-email-utente').addEventListener('click',inviaEmailUtente);
-  document.getElementById('btn-condividi-pdf').addEventListener('click',condividiPDF);
-  document.getElementById('btn-cambia-tariffa-utente').addEventListener('click',showModificaTariffaUtente);
-  document.getElementById('btn-esporta-pdf-utente').addEventListener('click',esportaPDF);
-  document.getElementById('nav-home').addEventListener('click',function(){switchTab('home');});
-  document.getElementById('nav-voci').addEventListener('click',function(){switchTab('voci');});
-  document.getElementById('nav-riepilogo').addEventListener('click',function(){switchTab('riepilogo');});
-  document.getElementById('nav-nuovo').addEventListener('click',showNuovaVoce);
-  document.getElementById('filtro-mese').addEventListener('change',caricaVoci);
-  document.getElementById('btn-ore-meno').addEventListener('click',function(){adjustOre(-0.5);});
-  document.getElementById('btn-ore-piu').addEventListener('click',function(){adjustOre(0.5);});
-  document.getElementById('btn-annulla-voce').addEventListener('click',function(){closeModal('modal-voce');});
-  document.getElementById('btn-salva-voce').addEventListener('click',salvaVoce);
 
-  document.getElementById('btn-modifica-tariffa').addEventListener('click',showModificaTariffa);
-  document.getElementById('btn-gestisci-luoghi').addEventListener('click',showGestisciLuoghi);
-  document.getElementById('btn-giorno-max').addEventListener('click',showGiornoMax);
-  document.getElementById('btn-invia-riepilogo').addEventListener('click',inviaRiepilogoMensile);
-  document.getElementById('btn-esporta-pdf-admin').addEventListener('click',esportaPDF);
-  document.getElementById('btn-annulla-tariffa').addEventListener('click',function(){closeModal('modal-tariffa');});
-  document.getElementById('btn-salva-tariffa').addEventListener('click',salvaTariffa);
-  document.getElementById('btn-aggiungi-luogo').addEventListener('click',aggiungiLuogo);
-  document.getElementById('btn-chiudi-luoghi').addEventListener('click',function(){closeModal('modal-luoghi');});
-  document.getElementById('btn-chiudi-giorno-max').addEventListener('click',function(){closeModal('modal-giorno-max');});
+  // Google Sign-In inizializzato quando la libreria GSI è pronta
+  if (typeof google !== 'undefined') {
+    initGoogleSignIn();
+  } else {
+    // Aspetta che la libreria Google sia caricata
+    window.addEventListener('load', initGoogleSignIn);
+  }
+  document.getElementById('btn-logout-utente').addEventListener('click', logoutUtente);
+  document.getElementById('btn-logout-admin').addEventListener('click', logoutAdmin);
+
+  document.getElementById('btn-nuova-voce-home').addEventListener('click', showNuovaVoce);
+  document.getElementById('btn-vai-voci').addEventListener('click', function(){ switchTab('voci'); });
+  document.getElementById('btn-annulla-ultima').addEventListener('click', annullaUltimaVoce);
+  document.getElementById('btn-invia-email-utente').addEventListener('click', inviaEmailUtente);
+  document.getElementById('btn-esporta-pdf-utente').addEventListener('click', esportaPDF);
+
+  document.getElementById('nav-home').addEventListener('click', function(){ switchTab('home'); });
+  document.getElementById('nav-voci').addEventListener('click', function(){ switchTab('voci'); });
+  document.getElementById('nav-riepilogo').addEventListener('click', function(){ switchTab('riepilogo'); });
+  document.getElementById('nav-nuovo').addEventListener('click', showNuovaVoce);
+
+  document.getElementById('filtro-mese').addEventListener('change', caricaVoci);
+
+  document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
+  document.getElementById('btn-ore-piu').addEventListener('click',  function(){ adjustOre(0.5); });
+  document.getElementById('btn-annulla-voce').addEventListener('click', function(){ closeModal('voce'); });
+  document.getElementById('btn-salva-voce').addEventListener('click', salvaVoce);
+
+  document.querySelectorAll('.pin-key[data-pin]').forEach(function(btn){
+    btn.addEventListener('click', function(){ pinTap(btn.dataset.pin); });
+  });
+  document.getElementById('pin-canc').addEventListener('click', pinClear);
+  document.getElementById('pin-del').addEventListener('click', pinDel);
+
+  document.getElementById('btn-modifica-tariffa').addEventListener('click', showModificaTariffa);
+  document.getElementById('btn-gestisci-luoghi').addEventListener('click', showGestisciLuoghi);
+  document.getElementById('btn-giorno-max').addEventListener('click', showGiornoMax);
+  document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
+  document.getElementById('btn-esporta-pdf-admin').addEventListener('click', esportaPDF);
+
+  document.getElementById('btn-annulla-tariffa').addEventListener('click', function(){ closeModal('tariffa'); });
+  document.getElementById('btn-salva-tariffa').addEventListener('click', salvaTariffa);
+  document.getElementById('btn-aggiungi-luogo').addEventListener('click', aggiungiLuogo);
+  document.getElementById('btn-chiudi-luoghi').addEventListener('click', function(){ closeModal('luoghi'); });
+  document.getElementById('btn-chiudi-giorno-max').addEventListener('click', function(){ closeModal('giorno-max'); });
 });
 </script>
 </body>
