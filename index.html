@@ -107,7 +107,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value" id="u-ore-tot">—</div></div>
         <div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro" id="u-euro-tot">—</div></div>
         <div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small" id="u-giorni">—</div></div>
-        <div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div></div>
+        <div class="stat" style="position:relative;"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div><button id="btn-cambia-tariffa-utente" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;">cambia</button></div>
       </div>
     </div>
     <div class="card">
@@ -120,7 +120,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         </div>
         <div class="btn-grid">
           <button class="btn btn-secondary" id="btn-invia-email-utente"><span>✉</span> Invia email</button>
-          <button class="btn btn-secondary" id="btn-esporta-pdf-utente"><span>📄</span> Esporta PDF</button>
+          <button class="btn btn-secondary" id="btn-condividi-pdf"><span>📤</span> Condividi PDF</button>
         </div>
       </div>
     </div>
@@ -616,6 +616,36 @@ function annullaUltimaVoce() {
   });
 }
 
+function showModificaTariffaUtente() {
+  var tariffa = document.getElementById('u-tariffa').textContent.replace('€ ','').replace('/h','').trim();
+  document.getElementById('new-tariffa').value = parseFloat(tariffa) || 7;
+  openModal('tariffa');
+}
+
+function condividiPDF() {
+  toast('⏳ Generazione PDF...');
+  apiCall('getPdfUrl', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
+    if (!r || !r.ok || !r.url) { toast('⚠ Errore generazione PDF'); return; }
+    // Su mobile usa Web Share API se disponibile
+    if (navigator.share) {
+      navigator.share({
+        title: 'Registro Ore ' + getMeseNome() + ' ' + state.anno,
+        text: 'Riepilogo ore lavoro ' + getMeseNome() + ' ' + state.anno,
+        url: r.url
+      }).then(function() {
+        toast('✓ Condiviso');
+      }).catch(function() {
+        // Utente ha annullato — non mostrare errore
+      });
+    } else {
+      // Su PC apri direttamente
+      var a = document.createElement('a');
+      a.href = r.url; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+  });
+}
+
 function inviaEmailUtente() {
   toast('⏳ Invio in corso...');
   apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'utente'}).then(function(r){
@@ -731,6 +761,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-vai-voci').addEventListener('click', function(){ switchTab('voci'); });
   document.getElementById('btn-annulla-ultima').addEventListener('click', annullaUltimaVoce);
   document.getElementById('btn-invia-email-utente').addEventListener('click', inviaEmailUtente);
+  document.getElementById('btn-condividi-pdf').addEventListener('click', condividiPDF);
+  document.getElementById('btn-cambia-tariffa-utente').addEventListener('click', showModificaTariffaUtente);
   document.getElementById('btn-esporta-pdf-utente').addEventListener('click', esportaPDF);
 
   document.getElementById('nav-home').addEventListener('click', function(){ switchTab('home'); });
