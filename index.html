@@ -338,6 +338,13 @@ function apiCall(action, payload) {
       resolve(demoData(action)); return;
     }
     var data = Object.assign({ action: action }, payload || {});
+    // Manda giorno/mese/anno come interi separati — nessuna conversione fuso orario
+    if (data.data) {
+      var parts = String(data.data).split('-');
+      data.dataAnno   = parseInt(parts[0]);
+      data.dataMese   = parseInt(parts[1]);
+      data.dataGiorno = parseInt(parts[2]);
+    }
     var params = Object.keys(data).map(function(k){
       return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
     }).join('&');
