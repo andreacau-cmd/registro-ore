@@ -515,7 +515,7 @@ function salvaVoce(){
   if(rigaTarget)payload.riga=rigaTarget;
   apiCall(action,payload).then(function(r){
     btn.innerHTML='<span>✓</span> Salva voce';btn.disabled=false;
-    if(r&&r.ok){closeModal('modal-voce');toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata');caricaHomeUtente();}
+    if(r&&r.ok){closeModal('voce');toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata');caricaHomeUtente();}
     else toast('⚠ Errore nel salvataggio');
   });
 }
