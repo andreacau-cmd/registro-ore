@@ -293,7 +293,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbye7P4eGu0c5NZfe6Kf5AA8q86cKrXYob9Yh9pdLp2wEvjvbevs4Uv19esOf047uncmKQ/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx3qVJvbwUEusdlm5laHi5t1uot4Vn5Nr5hssK_y31e04PJXIhYfloZSQB3hWGCdXPbfg/exec";
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
@@ -409,7 +409,7 @@ function handleGoogleLogin(response) {
     document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
     caricaHomeUtente();
     popolaFiltroMesi();
-    popolaTagsLuoghi();
+    caricaLuoghiDaFoglio();
   }
 }
 
@@ -574,6 +574,15 @@ function popolaTagsLuoghi() {
       tag.classList.add('selected');
       document.getElementById('v-luogo').value=tag.dataset.luogo;
     });
+  });
+}
+
+function caricaLuoghiDaFoglio() {
+  apiCall('getLuoghi', { anno: state.anno }).then(function(r){
+    if(r && r.ok && r.luoghi && r.luoghi.length) {
+      state.luoghi = r.luoghi;
+      popolaTagsLuoghi();
+    }
   });
 }
 
