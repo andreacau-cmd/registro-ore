@@ -619,28 +619,29 @@ function annullaUltimaVoce() {
   });
 }
 
-function condividiPDF() {
-  toast('⏳ Generazione PDF...');
-  apiCall('getPdfUrl', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
-    if (!r || !r.ok || !r.url) { toast('⚠ Errore PDF'); return; }
-    if (navigator.share) {
-      navigator.share({
-        title: 'Registro Ore ' + getMeseNome() + ' ' + state.anno,
-        text: 'Riepilogo ore ' + getMeseNome() + ' ' + state.anno,
-        url: r.url
-      }).catch(function() {});
-    } else {
-      var a = document.createElement('a');
-      a.href = r.url; a.target = '_blank'; a.rel = 'noopener';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    }
-  });
-}
-
 function inviaEmailUtente() {
   toast('⏳ Invio in corso...');
   apiCall('inviaEmail',{mese:getMeseNome(),anno:state.anno,tipo:'utente'}).then(function(r){
     toast(r&&r.ok?'✉ Email inviata':'⚠ Errore invio');
+  });
+}
+
+function condividiPDF() {
+  toast('⏳ Generazione PDF...');
+  apiCall('getPdfUrl',{mese:getMeseNome(),anno:state.anno}).then(function(r){
+    if(r&&r.ok&&r.url) {
+      if(navigator.share) {
+        navigator.share({
+          title: 'Registro Ore ' + getMeseNome() + ' ' + state.anno,
+          text: 'Riepilogo ore ' + getMeseNome() + ' ' + state.anno,
+          url: r.url
+        }).catch(function(){});
+      } else {
+        var a = document.createElement('a');
+        a.href=r.url; a.target='_blank'; a.rel='noopener';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      }
+    } else toast('⚠ Errore PDF');
   });
 }
 
