@@ -296,7 +296,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5UmgeN0y4MI9tSuuFJXquO6oJIGbyaoAbU9o-fLHTkX18dNT2XZ1FxbwX2G-25Jn-7A/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHovo7lynJkTgL87sGPdRAVrM2F2CCo_VNkAP-6ZI7CO1Q8CwxiZKKISq71u3OPTFV/exec";
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
@@ -628,20 +628,30 @@ function inviaEmailUtente() {
 
 function condividiPDF() {
   toast('⏳ Generazione PDF...');
-  apiCall('getPdfUrl',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if(r&&r.ok&&r.url) {
-      if(navigator.share) {
-        navigator.share({
-          title: 'Registro Ore ' + getMeseNome() + ' ' + state.anno,
-          text: 'Riepilogo ore ' + getMeseNome() + ' ' + state.anno,
-          url: r.url
-        }).catch(function(){});
-      } else {
-        var a = document.createElement('a');
-        a.href=r.url; a.target='_blank'; a.rel='noopener';
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      }
-    } else toast('⚠ Errore PDF');
+  apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
+    if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
+    // Converti base64 in blob PDF
+    var byteChars = atob(r.data);
+    var byteNums = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) {
+      byteNums[i] = byteChars.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNums);
+    var blob = new Blob([byteArray], { type: 'application/pdf' });
+    var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
+    var file = new File([blob], fileName, { type: 'application/pdf' });
+    // Su mobile condividi il file direttamente
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: fileName }).catch(function() {});
+    } else {
+      // Fallback — scarica il file
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   });
 }
 
