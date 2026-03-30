@@ -512,9 +512,12 @@ function caricaVoci() {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
       return;
     }
+    // Salva il mese dentro ogni voce per identificarla correttamente
+    r.voci.forEach(function(v){ v.meseFoglio = MESI[mIdx]; });
+    state.voci = state.voci.filter(function(v){ return v.meseFoglio !== MESI[mIdx]; }).concat(r.voci);
     el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item){
-      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
+      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga), MESI[mIdx]); });
     });
   });
 }
@@ -547,10 +550,25 @@ function showNuovaVoce() {
   openModal('voce');
 }
 
-function editVoce(riga) {
-  var v=state.voci.find(function(x){ return x.riga===riga; });
+function editVoce(riga, meseFoglio) {
+  var mese = meseFoglio || getMeseNome();
+  var meseIdx = MESI.indexOf(mese);
+  var corrente = state.meseCorrente;
+  var precedente = corrente === 0 ? 11 : corrente - 1;
+
+  if (meseIdx !== corrente && meseIdx !== precedente) {
+    toast('⚠ Puoi modificare solo il mese corrente e quello precedente');
+    return;
+  }
+  if (meseIdx === precedente) {
+    if (!confirm('Stai modificando ' + mese + ' (mese precedente).
+Vuoi continuare?')) return;
+  }
+
+  var v=state.voci.find(function(x){ return x.riga===riga && (x.meseFoglio===mese||!x.meseFoglio); });
   if(!v) return;
   state.editingRow=riga;
+  state.editingMese=mese;
   document.getElementById('modal-voce-title').textContent='Modifica voce';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
   document.getElementById('v-data').value=v.data;
@@ -600,7 +618,8 @@ function salvaVoce() {
   var btn=document.getElementById('btn-salva-voce');
   btn.textContent='Salvataggio...'; btn.disabled=true;
   var action=state.editingRow?'aggiornaVoce':'salvaVoce';
-  var payload={mese:getMeseNome(),anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
+  var meseTarget = (state.editingRow && state.editingMese) ? state.editingMese : getMeseNome();
+  var payload={mese:meseTarget,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
   if(state.editingRow) payload.riga=state.editingRow;
   apiCall(action,payload).then(function(r){
     btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
