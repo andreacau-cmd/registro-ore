@@ -611,10 +611,29 @@ function salvaVoce() {
   if(!data)         { toast('⚠ Inserisci una data'); return; }
   if(!ore||ore<=0)  { toast('⚠ Inserisci le ore');   return; }
   if(!luogo)        { toast('⚠ Inserisci il luogo'); return; }
+
+  // Determina il mese dalla data inserita
+  var dataParts = data.split('-');
+  var meseDaData = MESI[parseInt(dataParts[1]) - 1];
+  var meseIdxDaData = parseInt(dataParts[1]) - 1;
+  var corrente = state.meseCorrente;
+  var precedente = corrente === 0 ? 11 : corrente - 1;
+
+  // Se è una nuova voce controlla il mese della data
+  if (!state.editingRow) {
+    if (meseIdxDaData !== corrente && meseIdxDaData !== precedente) {
+      toast('⚠ Puoi inserire solo nel mese corrente o in quello precedente');
+      return;
+    }
+    if (meseIdxDaData === precedente) {
+      if (!confirm('Stai inserendo una voce in ' + meseDaData + ' (mese precedente). Vuoi continuare?')) return;
+    }
+  }
+
   var btn=document.getElementById('btn-salva-voce');
   btn.textContent='Salvataggio...'; btn.disabled=true;
   var action=state.editingRow?'aggiornaVoce':'salvaVoce';
-  var meseTarget = (state.editingRow && state.editingMese) ? state.editingMese : getMeseNome();
+  var meseTarget = state.editingRow && state.editingMese ? state.editingMese : meseDaData;
   var payload={mese:meseTarget,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
   if(state.editingRow) payload.riga=state.editingRow;
   apiCall(action,payload).then(function(r){
