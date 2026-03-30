@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Registro Ore</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;--text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
 @media(prefers-color-scheme:dark){:root{--bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;--text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--danger:#e05555;--pill-bg:#1e2d46;--pill-text:#7aadee;--shadow:0 2px 16px rgba(0,0,0,0.4);}}
@@ -512,12 +512,9 @@ function caricaVoci() {
       el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
       return;
     }
-    // Salva il mese dentro ogni voce per identificarla correttamente
-    r.voci.forEach(function(v){ v.meseFoglio = MESI[mIdx]; });
-    state.voci = state.voci.filter(function(v){ return v.meseFoglio !== MESI[mIdx]; }).concat(r.voci);
     el.innerHTML=r.voci.slice().reverse().map(voceHTML).join('');
     el.querySelectorAll('.voce-item').forEach(function(item){
-      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga), MESI[mIdx]); });
+      item.addEventListener('click',function(){ editVoce(parseInt(item.dataset.riga)); });
     });
   });
 }
@@ -550,25 +547,10 @@ function showNuovaVoce() {
   openModal('voce');
 }
 
-function editVoce(riga, meseFoglio) {
-  var mese = meseFoglio || getMeseNome();
-  var meseIdx = MESI.indexOf(mese);
-  var corrente = state.meseCorrente;
-  var precedente = corrente === 0 ? 11 : corrente - 1;
-
-  if (meseIdx !== corrente && meseIdx !== precedente) {
-    toast('⚠ Puoi modificare solo il mese corrente e quello precedente');
-    return;
-  }
-  if (meseIdx === precedente) {
-    if (!confirm('Stai modificando ' + mese + ' (mese precedente).
-Vuoi continuare?')) return;
-  }
-
-  var v=state.voci.find(function(x){ return x.riga===riga && (x.meseFoglio===mese||!x.meseFoglio); });
+function editVoce(riga) {
+  var v=state.voci.find(function(x){ return x.riga===riga; });
   if(!v) return;
   state.editingRow=riga;
-  state.editingMese=mese;
   document.getElementById('modal-voce-title').textContent='Modifica voce';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
   document.getElementById('v-data').value=v.data;
@@ -618,8 +600,7 @@ function salvaVoce() {
   var btn=document.getElementById('btn-salva-voce');
   btn.textContent='Salvataggio...'; btn.disabled=true;
   var action=state.editingRow?'aggiornaVoce':'salvaVoce';
-  var meseTarget = (state.editingRow && state.editingMese) ? state.editingMese : getMeseNome();
-  var payload={mese:meseTarget,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
+  var payload={mese:getMeseNome(),anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
   if(state.editingRow) payload.riga=state.editingRow;
   apiCall(action,payload).then(function(r){
     btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
