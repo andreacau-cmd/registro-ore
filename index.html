@@ -570,6 +570,8 @@ function editVoce(riga, meseFoglio) {
   if(!v) return;
   state.editingRow=riga;
   state.editingMese=mese;
+  state.editingDataOriginale  = v.data;
+  state.editingLuogoOriginale = v.luogo;
   // Mostra il cestino solo in modalità modifica
   document.getElementById('btn-elimina-voce').style.display='block';
   document.getElementById('modal-voce-title').textContent='Modifica voce';
@@ -634,10 +636,8 @@ function salvaVoce() {
 function eliminaVoceCorrente() {
   if (!state.editingRow) return;
   var mese = state.editingMese || getMeseNome();
-  // Legge data e luogo direttamente dal modal — sempre corretti
-  var dataModal  = document.getElementById('v-data').value;
-  var luogoModal = document.getElementById('v-luogo').value;
-  var label = formatDate(dataModal) + ' — ' + luogoModal;
+  // Usa i dati originali salvati all'apertura del modal
+  var label = formatDate(state.editingDataOriginale) + ' — ' + state.editingLuogoOriginale;
   if (!confirm('Eliminare ' + label + '?\nQuesta azione non può essere annullata.')) return;
   closeModal('voce');
   apiCall('eliminaVoce', { mese: mese, anno: state.anno, riga: state.editingRow }).then(function(r) {
