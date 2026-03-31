@@ -224,7 +224,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="modal-overlay" id="modal-voce">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-voce-title">Nuova voce</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div class="modal-title" id="modal-voce-title" style="margin:0;">Nuova voce</div>
+      <button id="btn-elimina-voce" style="display:none;background:none;border:none;color:var(--danger);font-size:22px;cursor:pointer;padding:4px;">🗑️</button>
+    </div>
     <div class="field"><label>Data</label><input type="date" id="v-data"></div>
     <div class="field">
       <label>Ore lavorate</label>
@@ -296,13 +299,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHovo7lynJkTgL87sGPdRAVrM2F2CCo_VNkAP-6ZI7CO1Q8CwxiZKKISq71u3OPTFV/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxnoaRxT4Hvg9vlKJJFl3ecAId3M0l7jNJRYnm4kTjYnF8mrwRLzO9AbIGgx78ZDMW9VQ/exec";
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
   "andrea.cau.import@gmail.com":  "admin",
   "blackjad555@gmail.com": "utente",
-  "paolacaria258@gmail.com": "utente",
   "INCOLLA_EMAIL_UTENTE2@gmail.com": "utente",
   "INCOLLA_EMAIL_UTENTE3@gmail.com": "utente"
 };
@@ -540,7 +542,9 @@ function caricaRiepilogoDettaglio() {
 
 function showNuovaVoce() {
   state.editingRow=null;
+  state.editingMese=null;
   document.getElementById('modal-voce-title').textContent='Nuova voce';
+  document.getElementById('btn-elimina-voce').style.display='none';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Salva voce';
   document.getElementById('v-data').value=todayISO();
   document.getElementById('v-ore').value='2';
@@ -566,6 +570,8 @@ function editVoce(riga, meseFoglio) {
   if(!v) return;
   state.editingRow=riga;
   state.editingMese=mese;
+  // Mostra il cestino solo in modalità modifica
+  document.getElementById('btn-elimina-voce').style.display='block';
   document.getElementById('modal-voce-title').textContent='Modifica voce';
   document.getElementById('btn-salva-voce').innerHTML='<span>✓</span> Aggiorna voce';
   document.getElementById('v-data').value=v.data;
@@ -612,35 +618,29 @@ function salvaVoce() {
   if(!data)         { toast('⚠ Inserisci una data'); return; }
   if(!ore||ore<=0)  { toast('⚠ Inserisci le ore');   return; }
   if(!luogo)        { toast('⚠ Inserisci il luogo'); return; }
-
-  // Determina il mese dalla data inserita
-  var dataParts = data.split('-');
-  var meseDaData = MESI[parseInt(dataParts[1]) - 1];
-  var meseIdxDaData = parseInt(dataParts[1]) - 1;
-  var corrente = state.meseCorrente;
-  var precedente = corrente === 0 ? 11 : corrente - 1;
-
-  // Se è una nuova voce controlla il mese della data
-  if (!state.editingRow) {
-    if (meseIdxDaData !== corrente && meseIdxDaData !== precedente) {
-      toast('⚠ Puoi inserire solo nel mese corrente o in quello precedente');
-      return;
-    }
-    if (meseIdxDaData === precedente) {
-      if (!confirm('Stai inserendo una voce in ' + meseDaData + ' (mese precedente). Vuoi continuare?')) return;
-    }
-  }
-
   var btn=document.getElementById('btn-salva-voce');
   btn.textContent='Salvataggio...'; btn.disabled=true;
   var action=state.editingRow?'aggiornaVoce':'salvaVoce';
-  var meseTarget = state.editingRow && state.editingMese ? state.editingMese : meseDaData;
+  var meseTarget = (state.editingRow && state.editingMese) ? state.editingMese : getMeseNome();
   var payload={mese:meseTarget,anno:state.anno,data:data,ore:ore,luogo:luogo,note:note};
   if(state.editingRow) payload.riga=state.editingRow;
   apiCall(action,payload).then(function(r){
     btn.innerHTML='<span>✓</span> Salva voce'; btn.disabled=false;
     if(r&&r.ok) { closeModal('voce'); toast(state.editingRow?'✓ Voce aggiornata':'✓ Voce salvata'); caricaHomeUtente(); }
     else toast('⚠ Errore nel salvataggio');
+  });
+}
+
+function eliminaVoceCorrente() {
+  if (!state.editingRow) return;
+  var mese = state.editingMese || getMeseNome();
+  var v = state.voci.find(function(x){ return x.riga===state.editingRow && (x.meseFoglio===mese||!x.meseFoglio); });
+  var label = v ? formatDate(v.data) + ' — ' + v.luogo : 'questa voce';
+  if (!confirm('Eliminare ' + label + '?\nQuesta azione non può essere annullata.')) return;
+  closeModal('voce');
+  apiCall('eliminaVoce', { mese: mese, anno: state.anno, riga: state.editingRow }).then(function(r) {
+    if (r && r.ok) { toast('🗑️ Voce eliminata'); caricaHomeUtente(); caricaVoci(); }
+    else toast('⚠ Errore eliminazione');
   });
 }
 
@@ -811,6 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
   document.getElementById('btn-ore-piu').addEventListener('click',  function(){ adjustOre(0.5); });
   document.getElementById('btn-annulla-voce').addEventListener('click', function(){ closeModal('voce'); });
+  document.getElementById('btn-elimina-voce').addEventListener('click', eliminaVoceCorrente);
   document.getElementById('btn-salva-voce').addEventListener('click', salvaVoce);
 
   document.querySelectorAll('.pin-key[data-pin]').forEach(function(btn){
