@@ -634,8 +634,10 @@ function salvaVoce() {
 function eliminaVoceCorrente() {
   if (!state.editingRow) return;
   var mese = state.editingMese || getMeseNome();
-  var v = state.voci.find(function(x){ return x.riga===state.editingRow && (x.meseFoglio===mese||!x.meseFoglio); });
-  var label = v ? formatDate(v.data) + ' — ' + v.luogo : 'questa voce';
+  // Legge data e luogo direttamente dal modal — sempre corretti
+  var dataModal  = document.getElementById('v-data').value;
+  var luogoModal = document.getElementById('v-luogo').value;
+  var label = formatDate(dataModal) + ' — ' + luogoModal;
   if (!confirm('Eliminare ' + label + '?\nQuesta azione non può essere annullata.')) return;
   closeModal('voce');
   apiCall('eliminaVoce', { mese: mese, anno: state.anno, riga: state.editingRow }).then(function(r) {
