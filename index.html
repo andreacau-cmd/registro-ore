@@ -136,7 +136,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div class="card-title" style="margin:0;">Tutte le voci</div>
-        <select id="filtro-mese" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <select id="filtro-mese" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+          <button id="btn-condividi-pdf-voci" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="Condividi PDF mese">📤</button>
+        </div>
       </div>
       <div id="lista-voci"><div class="loader"><div class="spinner"></div></div></div>
     </div>
@@ -681,6 +684,31 @@ function inviaEmailUtente() {
   });
 }
 
+function condividiPDFMese() {
+  var mIdx = parseInt(document.getElementById('filtro-mese').value);
+  var mese = MESI[mIdx];
+  toast('⏳ Generazione PDF ' + mese + '...');
+  apiCall('getPdfBase64', { mese: mese, anno: state.anno }).then(function(r) {
+    if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
+    var byteChars = atob(r.data);
+    var byteNums = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
+    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+    var fileName = 'RegistroOre_' + mese + '_' + state.anno + '.pdf';
+    var file = new File([blob], fileName, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: fileName }).catch(function() {});
+    } else {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  });
+}
+
 function condividiPDF() {
   toast('⏳ Generazione PDF...');
   apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
@@ -827,6 +855,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('nav-nuovo').addEventListener('click', showNuovaVoce);
 
   document.getElementById('filtro-mese').addEventListener('change', caricaVoci);
+  document.getElementById('btn-condividi-pdf-voci').addEventListener('click', condividiPDFMese);
 
   document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
   document.getElementById('btn-ore-piu').addEventListener('click',  function(){ adjustOre(0.5); });
