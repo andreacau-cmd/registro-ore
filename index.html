@@ -739,19 +739,20 @@ function condividiPDF() {
 }
 
 function esportaPDF() {
-  toast('📄 Apertura PDF...');
-  apiCall('getPdfUrl',{mese:getMeseNome(),anno:state.anno}).then(function(r){
-    if(r&&r.ok&&r.url) {
-      // Su mobile window.open dentro .then() viene bloccato
-      // Usiamo un link <a> cliccato subito — funziona su tutti i browser
-      var a = document.createElement('a');
-      a.href = r.url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else toast('⚠ Errore export PDF');
+  toast('📄 Generazione PDF...');
+  apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
+    if (!r || !r.ok || !r.data) { toast('⚠ Errore export PDF'); return; }
+    var byteChars = atob(r.data);
+    var byteNums = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
+    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+    var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   });
 }
 
