@@ -146,8 +146,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
   <div class="scroll" id="tab-riepilogo" style="display:none;">
     <div class="card">
-      <div class="card-title">Riepilogo dettagliato</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="card-title" style="margin:0;">Riepilogo mensile</div>
+        <select id="filtro-mese-riepilogo" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+      </div>
       <div id="riepilogo-content"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Totale annuale 2026</div>
+      <div id="riepilogo-anno"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
   <nav class="bottom-nav">
@@ -418,6 +425,7 @@ function handleGoogleLogin(response) {
     document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
     caricaHomeUtente();
     popolaFiltroMesi();
+    popolaFiltroMesiRiepilogo();
     caricaLuoghiDaFoglio();
   }
 }
@@ -528,10 +536,18 @@ function caricaVoci() {
   });
 }
 
+function popolaFiltroMesiRiepilogo() {
+  document.getElementById('filtro-mese-riepilogo').innerHTML = MESI.map(function(m,i){
+    return '<option value="'+i+'"'+(i===state.meseCorrente?' selected':'')+'>'+m+'</option>';
+  }).join('');
+}
+
 function caricaRiepilogoDettaglio() {
+  var mIdx = parseInt(document.getElementById('filtro-mese-riepilogo').value);
+  var mese = MESI[mIdx];
   var el=document.getElementById('riepilogo-content');
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
-  apiCall('getRiepilogoMese',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
+  apiCall('getRiepilogoMese',{mese:mese,anno:state.anno}).then(function(r) {
     if(!r||!r.ok) return;
     el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
       +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
@@ -541,6 +557,26 @@ function caricaRiepilogoDettaglio() {
       +'</div><div style="background:var(--bg2);border-radius:10px;padding:14px;">'
       +'<div style="font-size:13px;color:var(--text2);margin-bottom:6px;">Calcolo</div>'
       +'<div style="font-family:var(--mono);font-size:14px;">'+Number(r.ore).toFixed(2)+' ore × €'+r.tariffa+' = <strong>€'+Number(r.euro).toFixed(2)+'</strong></div></div>';
+  });
+  caricaRiepilogoAnno();
+}
+
+function caricaRiepilogoAnno() {
+  var el = document.getElementById('riepilogo-anno');
+  apiCall('getRiepilogoAnno', { anno: state.anno }).then(function(r) {
+    if (!r || !r.ok) return;
+    el.innerHTML = '<div class="stat-grid" style="margin-bottom:12px;">'
+      +'<div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.totOre).toFixed(2)+'</div></div>'
+      +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.totEuro).toFixed(2)+'</div></div>'
+      +'<div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small">'+r.totGiorni+'</div></div>'
+      +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+Number(r.tariffa).toFixed(2)+'/h</div></div>'
+      +'</div>'
+      + r.mesi.filter(function(m){ return m.ore > 0; }).map(function(m){
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+          +'<span>'+m.mese+'</span>'
+          +'<span style="font-family:var(--mono);">'+Number(m.ore).toFixed(1)+'h — €'+Number(m.euro).toFixed(2)+'</span>'
+          +'</div>';
+      }).join('');
   });
 }
 
@@ -856,6 +892,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('nav-nuovo').addEventListener('click', showNuovaVoce);
 
   document.getElementById('filtro-mese').addEventListener('change', caricaVoci);
+  document.getElementById('filtro-mese-riepilogo').addEventListener('change', caricaRiepilogoDettaglio);
   document.getElementById('btn-condividi-pdf-voci').addEventListener('click', condividiPDFMese);
 
   document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
