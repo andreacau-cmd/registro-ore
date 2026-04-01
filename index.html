@@ -684,27 +684,28 @@ function inviaEmailUtente() {
   });
 }
 
-function apriPDF(base64data, fileName) {
-  var byteChars = atob(base64data);
-  var byteNums = new Array(byteChars.length);
-  for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
-  var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url; a.download = fileName; a.target = '_blank';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-}
-
 function condividiPDFMese() {
   var mIdx = parseInt(document.getElementById('filtro-mese').value);
   var mese = MESI[mIdx];
   toast('⏳ Generazione PDF ' + mese + '...');
   apiCall('getPdfBase64', { mese: mese, anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
-    apriPDF(r.data, 'RegistroOre_' + mese + '_' + state.anno + '.pdf');
-    toast('✓ PDF pronto — condividi dai file recenti');
+    var byteChars = atob(r.data);
+    var byteNums = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
+    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+    var fileName = 'RegistroOre_' + mese + '_' + state.anno + '.pdf';
+    var file = new File([blob], fileName, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: fileName }).catch(function() {});
+    } else {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   });
 }
 
@@ -712,8 +713,28 @@ function condividiPDF() {
   toast('⏳ Generazione PDF...');
   apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
-    apriPDF(r.data, 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf');
-    toast('✓ PDF pronto — condividi dai file recenti');
+    // Converti base64 in blob PDF
+    var byteChars = atob(r.data);
+    var byteNums = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) {
+      byteNums[i] = byteChars.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNums);
+    var blob = new Blob([byteArray], { type: 'application/pdf' });
+    var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
+    var file = new File([blob], fileName, { type: 'application/pdf' });
+    // Su mobile condividi il file direttamente
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: fileName }).catch(function() {});
+    } else {
+      // Fallback — scarica il file
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   });
 }
 
