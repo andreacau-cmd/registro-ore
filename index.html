@@ -107,7 +107,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value" id="u-ore-tot">—</div></div>
         <div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro" id="u-euro-tot">—</div></div>
         <div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small" id="u-giorni">—</div></div>
-        <div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div></div>
+        <div class="stat" style="position:relative;"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div><button id="btn-cambia-tariffa-utente" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;">cambia</button></div>
       </div>
     </div>
     <div class="card">
@@ -572,9 +572,9 @@ function caricaRiepilogoAnno() {
       +'</div>'
       + r.mesi.filter(function(m){ return m.ore > 0; }).map(function(m){
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">'
-          +'<span style="font-weight:500;">'+m.mese+'</span>'
-          +'<span style="color:var(--text2);font-size:11px;">€'+Number(m.tariffa).toFixed(2)+'/h</span>'
-          +'<span style="font-family:var(--mono);">'+Number(m.ore).toFixed(1)+'h — €'+Number(m.euro).toFixed(2)+'</span>'
+          +'<span style="font-weight:500;flex:1;">'+m.mese+'</span>'
+          +'<span style="color:var(--text2);font-size:11px;width:64px;text-align:center;">€'+Number(m.tariffa).toFixed(2)+'/h</span>'
+          +'<span style="font-family:var(--mono);width:120px;text-align:right;">'+Number(m.ore).toFixed(1)+'h — €'+Number(m.euro).toFixed(2)+'</span>'
           +'</div>';
       }).join('');
   });
@@ -810,6 +810,12 @@ function caricaAdminData() {
   });
 }
 
+function showModificaTariffaUtente() {
+  var t = document.getElementById('u-tariffa').textContent.replace('€ ','').replace('/h','').trim();
+  document.getElementById('new-tariffa').value = parseFloat(t) || 7;
+  openModal('tariffa');
+}
+
 function showModificaTariffa() { document.getElementById('new-tariffa').value=7; openModal('tariffa'); }
 
 function salvaTariffa() {
@@ -913,6 +919,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('pin-del').addEventListener('click', pinDel);
 
   document.getElementById('btn-modifica-tariffa').addEventListener('click', showModificaTariffa);
+  document.getElementById('btn-cambia-tariffa-utente').addEventListener('click', showModificaTariffaUtente);
   document.getElementById('btn-gestisci-luoghi').addEventListener('click', showGestisciLuoghi);
   document.getElementById('btn-giorno-max').addEventListener('click', showGiornoMax);
   document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
