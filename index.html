@@ -82,7 +82,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <body>
 <div id="app">
 
-<!-- LOGIN -->
 <div class="screen active" id="screen-login">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;">
     <div style="font-size:48px;margin-bottom:16px;">📋</div>
@@ -94,7 +93,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- UTENTE -->
 <div class="screen" id="screen-utente">
   <div class="topbar">
     <div><div class="topbar-title">Registro Ore</div><div class="topbar-sub" id="u-mese-label">—</div></div>
@@ -165,7 +163,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </nav>
 </div>
 
-<!-- ADMIN -->
 <div class="screen" id="screen-admin">
   <div class="topbar">
     <div><div class="topbar-title">Amministratore</div><div class="topbar-sub">Pannello di controllo</div></div>
@@ -203,7 +200,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODAL PIN -->
 <div class="modal-overlay" id="modal-pin">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -230,7 +226,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODAL VOCE -->
 <div class="modal-overlay" id="modal-voce">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -260,7 +255,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODAL TARIFFA -->
 <div class="modal-overlay" id="modal-tariffa">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -274,7 +268,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODAL LUOGHI -->
 <div class="modal-overlay" id="modal-luoghi">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -292,7 +285,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
-<!-- MODAL GIORNO MAX -->
 <div class="modal-overlay" id="modal-giorno-max">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -720,77 +712,73 @@ function inviaEmailUtente() {
   });
 }
 
+// ============================================================
+// NUOVA LOGICA PDF (OTTIMIZZATA PER MOBILE)
+// ============================================================
+
+async function gestisciPDF(mese, anno, modalita) {
+  toast('⏳ Generazione PDF...');
+  try {
+    const r = await apiCall('getPdfBase64', { mese: mese, anno: anno });
+    if (!r || !r.ok || !r.data) { 
+      toast('⚠ Errore nel recupero del PDF'); 
+      return; 
+    }
+
+    const byteChars = atob(r.data);
+    const byteNums = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNums[i] = byteChars.charCodeAt(i);
+    }
+    
+    const blob = new Blob([byteNums], { type: 'application/pdf' });
+    const fileName = 'RegistroOre_' + mese + '_' + anno + '.pdf';
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+
+    if (modalita === 'share' && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: fileName,
+          text: 'Ecco il registro ore di ' + mese
+        });
+      } catch (err) {
+        // Fallback al download se la condivisione viene annullata o bloccata
+        lanciaDownload(blob, fileName);
+      }
+    } else {
+      lanciaDownload(blob, fileName);
+      if (modalita === 'share') toast('📲 Share non supportato: Scaricato!');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('❌ Errore imprevisto');
+  }
+}
+
+function lanciaDownload(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function condividiPDFMese() {
   var mIdx = parseInt(document.getElementById('filtro-mese').value);
-  var mese = MESI[mIdx];
-  toast('⏳ Generazione PDF ' + mese + '...');
-  apiCall('getPdfBase64', { mese: mese, anno: state.anno }).then(function(r) {
-    if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
-    var byteChars = atob(r.data);
-    var byteNums = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
-    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
-    var fileName = 'RegistroOre_' + mese + '_' + state.anno + '.pdf';
-    var file = new File([blob], fileName, { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: fileName }).catch(function() {});
-    } else {
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  });
+  gestisciPDF(MESI[mIdx], state.anno, 'share');
 }
 
 function condividiPDF() {
-  toast('⏳ Generazione PDF...');
-  apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
-    if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
-    // Converti base64 in blob PDF
-    var byteChars = atob(r.data);
-    var byteNums = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) {
-      byteNums[i] = byteChars.charCodeAt(i);
-    }
-    var byteArray = new Uint8Array(byteNums);
-    var blob = new Blob([byteArray], { type: 'application/pdf' });
-    var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
-    var file = new File([blob], fileName, { type: 'application/pdf' });
-    // Su mobile condividi il file direttamente
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: fileName }).catch(function() {});
-    } else {
-      // Fallback — scarica il file
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  });
+  gestisciPDF(getMeseNome(), state.anno, 'share');
 }
 
 function esportaPDF() {
-  toast('📄 Generazione PDF...');
-  apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
-    if (!r || !r.ok || !r.data) { toast('⚠ Errore export PDF'); return; }
-    var byteChars = atob(r.data);
-    var byteNums = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
-    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
-    var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
+  gestisciPDF(getMeseNome(), state.anno, 'export');
 }
+
+// ============================================================
 
 function caricaAdminData() {
   var el=document.getElementById('a-mesi-list');
@@ -825,7 +813,6 @@ function salvaTariffa() {
     if(r&&r.ok) {
       closeModal('tariffa');
       toast('✓ Tariffa aggiornata a € '+val.toFixed(2));
-      // Aggiorna la home utente e admin senza nuovo login
       if (state.ruolo === 'admin') caricaAdminData();
       else caricaHomeUtente();
     } else toast('⚠ Errore');
@@ -874,17 +861,15 @@ function inviaRiepilogoMensile() {
 }
 
 // ============================================================
-// EVENT LISTENERS — tutti qui, zero onclick inline
+// EVENT LISTENERS
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('v-data').value = todayISO();
   popolaTagsLuoghi();
 
-  // Google Sign-In inizializzato quando la libreria GSI è pronta
   if (typeof google !== 'undefined') {
     initGoogleSignIn();
   } else {
-    // Aspetta che la libreria Google sia caricata
     window.addEventListener('load', initGoogleSignIn);
   }
   document.getElementById('btn-logout-utente').addEventListener('click', logoutUtente);
