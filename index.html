@@ -9,6 +9,7 @@
 <title>Registro Ore</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{--bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;--text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
 @media(prefers-color-scheme:dark){:root{--bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;--text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--danger:#e05555;--pill-bg:#1e2d46;--pill-text:#7aadee;--shadow:0 2px 16px rgba(0,0,0,0.4);}}
@@ -195,6 +196,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="card">
       <div class="card-title">Dettaglio per mese</div>
+	  <div class="card" style="margin-bottom: 15px;">
+  <div class="card-title">Attività Ultimi 7 Giorni</div>
+  <div style="height: 200px;"><canvas id="graficoOre"></canvas></div>
+</div>
       <div id="a-mesi-list"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
@@ -415,6 +420,11 @@ function handleGoogleLogin(response) {
   if (ruolo === 'admin') {
     showScreen('admin');
     caricaAdminData();
+	if (ruolo === 'admin') {
+    showScreen('admin');
+    caricaAdminData();
+    setTimeout(aggiornaGrafico, 500); // Aggiungi questa riga
+  }
   } else {
     showScreen('utente');
     document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
@@ -919,6 +929,31 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-chiudi-luoghi').addEventListener('click', function(){ closeModal('luoghi'); });
   document.getElementById('btn-chiudi-giorno-max').addEventListener('click', function(){ closeModal('giorno-max'); });
 });
+function aggiornaGrafico() {
+  const ctx = document.getElementById('graficoOre');
+  if (!ctx || !state.voci) return;
+
+  const giorni = [];
+  const ore = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const s = d.toISOString().split('T')[0];
+    giorni.push(d.toLocaleDateString('it-IT', {weekday:'short'}));
+    const tot = state.voci.filter(v => v.data === s).reduce((a, b) => a + parseFloat(b.ore || 0), 0);
+    ore.push(tot);
+  }
+
+  if (window.myChart) window.myChart.destroy();
+  window.myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: giorni,
+      datasets: [{ label: 'Ore', data: ore, backgroundColor: '#1a3a6b', borderRadius: 5 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
 async function ottieniPosizione() {
   const campo = document.getElementById('v-luogo');
   if (!navigator.geolocation) return alert("GPS non supportato");
