@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#1a3a6b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Registro Ore</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -14,7 +16,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden;}
 #app{min-height:100vh;display:flex;flex-direction:column;}
-.screen{display:none;flex-direction:column;min-height:100vh;width:100%;max-width:500px;margin:0 auto;}
+.screen{display:none;flex-direction:column;min-height:100vh;width:100%;max-width:500px;margin:0 auto;position:relative;}
 .screen.active{display:flex;}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .topbar-title{font-size:17px;font-weight:600;}
@@ -28,18 +30,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .stat-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
 .stat-value{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--text);}
 .stat-value.euro{color:var(--accent);}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s;width:100%;}
-.btn-primary{background:var(--accent);color:#fff;padding:15px;font-size:16px;}
-.btn-secondary{background:var(--bg2);color:var(--text);padding:13px;font-size:15px;border:1px solid var(--border);}
-.btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;}
+.stat-value.small{font-size:16px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;}
+.btn:active{transform:scale(0.97);opacity:0.85;}
+.btn-primary{background:var(--accent);color:#fff;padding:15px 20px;font-size:16px;}
+.btn-secondary{background:var(--bg2);color:var(--text);padding:13px 20px;font-size:15px;border:1px solid var(--border);}
+.btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;font-family:var(--font);white-space:nowrap;}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .form-label{font-size:13px;font-weight:500;margin-bottom:6px;display:block;color:var(--text2);}
-.form-control{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:15px;color:var(--text);outline:none;}
+.form-control{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:15px;color:var(--text);font-family:var(--font);outline:none;}
+.form-control:focus{border-color:var(--accent);}
 .input-group-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px 12px;}
 .input-group-row input{border:none;background:transparent;flex:1;padding:8px 0;text-align:center;font-family:var(--mono);font-weight:600;font-size:18px;}
-.step-btn{background:none;border:none;color:var(--accent);font-size:24px;width:36px;height:36px;cursor:pointer;}
+.step-btn{background:none;border:none;color:var(--accent);font-size:24px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .tag-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .tag{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;}
 .item{padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.item:last-child{border-bottom:none;}
+.item-info{display:flex;flex-direction:column;gap:2px;}
+.item-title{font-size:14px;font-weight:600;}
+.item-sub{font-size:12px;color:var(--text2);}
+.item-val{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--accent);}
 #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;z-index:2000;display:none;}
 </style>
 </head>
@@ -50,26 +61,42 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div style="text-align:center;margin-bottom:40px;">
       <div style="width:70px;height:70px;background:var(--accent);border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;">⏱️</div>
       <h1 style="font-size:24px;font-weight:600;">Registro Ore</h1>
-      <p style="color:var(--text2);margin-top:8px;">Accedi per iniziare</p>
+      <p style="color:var(--text2);margin-top:8px;">Accedi per gestire i tuoi tempi</p>
     </div>
+    
     <div id="g_id_onload" 
          data-client_id="849909249089-2l2pcc5s4sc7scat5n6h4k39re9541a0.apps.googleusercontent.com" 
          data-callback="handleGoogleLogin" 
          data-auto_prompt="false"
-         data-auto_select="false">
+         data-prompt="select_account">
     </div>
-    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signin_with" data-shape="rectangular" data-logo_alignment="left" style="width:100%;display:flex;justify-content:center;"></div>
+    
+    <div class="g_id_signin" 
+         data-type="standard" 
+         data-size="large" 
+         data-theme="outline" 
+         data-text="signin_with" 
+         data-shape="rectangular" 
+         data-logo_alignment="left" 
+         style="width:100%;display:flex;justify-content:center;">
+    </div>
   </div>
 
   <div id="screen-utente" class="screen">
     <div class="topbar">
-      <div><div class="topbar-title" id="u-nome">Utente</div><div class="topbar-sub">Nuova Registrazione</div></div>
+      <div>
+        <div class="topbar-title" id="u-nome">Utente</div>
+        <div class="topbar-sub">Nuova Registrazione</div>
+      </div>
       <button class="topbar-action" onclick="logout()">Esci</button>
     </div>
     <div class="scroll">
       <div class="card">
         <div class="card-title">Dettagli Lavoro</div>
-        <div style="margin-bottom:15px;"><label class="form-label">Data</label><input type="date" id="v-data" class="form-control"></div>
+        <div style="margin-bottom:15px;">
+          <label class="form-label">Data</label>
+          <input type="date" id="v-data" class="form-control">
+        </div>
         <div style="margin-bottom:15px;">
           <label class="form-label">Ore Lavorate</label>
           <div class="input-group-row">
@@ -81,15 +108,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <div style="margin-bottom:15px;">
           <label class="form-label">Luogo / Cantiere</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="v-luogo" class="form-control" placeholder="Indirizzo...">
-            <button class="btn-small" type="button" onclick="ottieniPosizione()" style="font-size:18px;min-width:44px;">📍</button>
+            <input type="text" id="v-luogo" class="form-control" placeholder="Es. Via Cavour 248">
+            <button class="btn-small" type="button" onclick="ottieniPosizione()" style="font-size:18px; min-width:44px;">📍</button>
           </div>
           <div class="tag-container" id="u-tag-luoghi"></div>
         </div>
-        <div><label class="form-label">Note</label><input type="text" id="v-note" class="form-control" placeholder="Opzionale..."></div>
+        <div>
+          <label class="form-label">Note</label>
+          <input type="text" id="v-note" class="form-control" placeholder="Opzionale...">
+        </div>
       </div>
       <button class="btn btn-primary" id="btn-salva-voce">Salva Voce</button>
-      <div class="card"><div class="card-title">Riepilogo Mese</div>
+      <div class="card" style="margin-top:10px;">
+        <div class="card-title">Riepilogo Mese</div>
         <div class="stat-grid">
           <div class="stat"><div class="stat-label">Ore Totali</div><div class="stat-value" id="u-tot-ore">0</div></div>
           <div class="stat"><div class="stat-label">Guadagno</div><div class="stat-value euro" id="u-tot-euro">0€</div></div>
@@ -100,27 +131,70 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
   <div id="screen-admin" class="screen">
     <div class="topbar">
-      <div><div class="topbar-title">Pannello Admin</div><div class="topbar-sub">Riepilogo Generale</div></div>
+      <div>
+        <div class="topbar-title">Pannello Admin</div>
+        <div class="topbar-sub" id="a-periodo">Statistiche</div>
+      </div>
       <button class="topbar-action" onclick="logout()">Esci</button>
     </div>
     <div class="scroll">
-      <div class="card">
-        <div class="card-title">Andamento Ore Ultimi 7 Giorni</div>
+      
+      <div class="card" style="margin-bottom: 10px;">
+        <div class="card-title">Attività Ultimi 7 Giorni</div>
         <div style="height: 180px;"><canvas id="graficoOre"></canvas></div>
       </div>
+
       <div class="card">
-        <div class="card-title">Totali Mensili</div>
+        <div class="card-title">Statistiche Mensili</div>
         <div class="stat-grid">
-          <div class="stat"><div class="stat-label">Ore</div><div class="stat-value small" id="a-tot-ore">0</div></div>
-          <div class="stat"><div class="stat-label">Euro</div><div class="stat-value small euro" id="a-tot-euro">0€</div></div>
+          <div class="stat"><div class="stat-label">Ore Totali</div><div class="stat-value small" id="a-tot-ore">0</div></div>
+          <div class="stat"><div class="stat-label">Costo Totale</div><div class="stat-value small euro" id="a-tot-euro">0€</div></div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px;">
+          <button class="btn-small" id="btn-modifica-tariffa">💰 Tariffa</button>
+          <button class="btn-small" id="btn-gestisci-luoghi">📍 Luoghi</button>
+          <button class="btn-small" id="btn-giorno-max">📊 Giorno</button>
         </div>
       </div>
-      <div style="display:flex; gap:10px;">
-         <button class="btn btn-secondary" onclick="inviaRiepilogo()">📤 Invia</button>
-         <button class="btn btn-secondary" onclick="alert('Generazione PDF...')">📄 PDF</button>
+
+      <div class="btn-grid" style="margin-top:5px;">
+        <button class="btn btn-secondary" id="btn-invia-riepilogo">📤 Invia</button>
+        <button class="btn btn-secondary" id="btn-esporta-pdf-admin">📄 PDF</button>
       </div>
+
       <div id="a-mesi-list" style="margin-top:10px;"></div>
     </div>
+  </div>
+</div>
+
+<div id="modal-tariffa" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-content" style="background:var(--surface); width:100%; max-width:400px; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);">
+    <div class="card-title">Modifica Tariffa Oraria</div>
+    <input type="number" id="m-tariffa-val" class="form-control" style="margin-bottom:20px; font-size:24px; text-align:center;">
+    <div class="btn-grid">
+      <button class="btn btn-secondary" id="btn-annulla-tariffa">Annulla</button>
+      <button class="btn btn-primary" id="btn-salva-tariffa">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-luoghi" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-content" style="background:var(--surface); width:100%; max-width:400px; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);">
+    <div class="card-title">Gestione Luoghi Rapidi</div>
+    <div id="m-luoghi-lista" style="max-height:200px;overflow-y:auto;margin-bottom:15px;border:1px solid var(--border);border-radius:10px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <input type="text" id="m-nuovo-luogo" class="form-control" placeholder="Nuovo luogo...">
+      <button class="btn-small" id="btn-aggiungi-luogo">+</button>
+    </div>
+    <button class="btn btn-secondary" id="btn-chiudi-luoghi">Chiudi</button>
+  </div>
+</div>
+
+<div id="modal-giorno-max" class="modal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div class="modal-content" style="background:var(--surface); width:100%; max-width:400px; border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);">
+    <div class="card-title">Giorno con più Ore</div>
+    <div id="m-giorno-max-val" style="font-size:18px;font-weight:600;text-align:center;margin:20px 0;">Nessun dato</div>
+    <button class="btn btn-secondary" id="btn-chiudi-giorno-max">Chiudi</button>
   </div>
 </div>
 
@@ -129,12 +203,33 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyR0jP8U3p48n6SshxunqT-882u0iYkF-G99p1iP_AofVwEsh6eAnf-pXU-5444eY0S/exec';
 const ADMIN_EMAIL = 'albertocv2013@gmail.com';
-let state = { user: null, ruolo: null, voci: [], tariffa: 15, luoghi: ["Subburra", "Via Cavur 248", "P.zza Repubblica"] };
+const LUOGHI_DEFAULT = ["Subburra", "Via Cavur 248", "P.zza Repubblica", "Via del Corso"];
+
+let state = {
+  user: null,
+  ruolo: null,
+  voci: [],
+  tariffa: 15,
+  luoghi: [...LUOGHI_DEFAULT]
+};
 
 function showScreen(s) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
   document.getElementById('screen-' + s).classList.add('active');
   if(s === 'admin') setTimeout(aggiornaGrafico, 300);
+}
+
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.innerText = m; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+function logout() {
+  // Scollega l'account revocando i token per pulire la sessione Google
+  google.accounts.id.disableAutoSelect();
+  state.user = null; state.ruolo = null;
+  showScreen('login');
 }
 
 function handleGoogleLogin(response) {
@@ -156,12 +251,11 @@ function handleGoogleLogin(response) {
   }
 }
 
-function logout() { location.reload(); }
-
 function stepOre(v) {
   const input = document.getElementById('v-ore');
   let val = parseFloat(input.value) + v;
-  if (val < 0.5) val = 0.5; input.value = val;
+  if (val < 0.5) val = 0.5; if (val > 24) val = 24;
+  input.value = val;
 }
 
 function renderLuoghiTags() {
@@ -175,35 +269,58 @@ function renderLuoghiTags() {
   });
 }
 
+async function api(action, data = {}) {
+  const params = new URLSearchParams({ action, ...data });
+  const resp = await fetch(`${SCRIPT_URL}?${params.toString()}`);
+  return await resp.json();
+}
+
 async function caricaUtenteData() {
-  const res = await fetch(`${SCRIPT_URL}?action=getVoci&email=${state.user.email}`).then(r => r.json());
+  const res = await api('getVoci', { email: state.user.email });
   state.voci = res.voci || [];
   aggiornaRiepilogoUtente();
 }
 
 async function caricaAdminData() {
-  const res = await fetch(`${SCRIPT_URL}?action=getAdminData`).then(r => r.json());
+  const res = await api('getAdminData');
   state.voci = res.voci || [];
+  state.tariffa = res.tariffa || 15;
+  state.luoghi = res.luoghi || [...LUOGHI_DEFAULT];
   aggiornaRiepilogoAdmin();
 }
 
 function aggiornaRiepilogoUtente() {
-  const tot = state.voci.reduce((a,b) => a + parseFloat(b.ore), 0);
-  document.getElementById('u-tot-ore').innerText = tot;
-  document.getElementById('u-tot-euro').innerText = (tot * 15).toFixed(2) + "€";
+  const ora = new Date();
+  const meseCorr = ora.getMonth(), annoCorr = ora.getFullYear();
+  const filtrate = state.voci.filter(v => {
+    const d = new Date(v.data);
+    return d.getMonth() === meseCorr && d.getFullYear() === annoCorr;
+  });
+  const totOre = filtrate.reduce((a,b) => a + parseFloat(b.ore), 0);
+  document.getElementById('u-tot-ore').innerText = totOre;
+  document.getElementById('u-tot-euro').innerText = (totOre * state.tariffa).toFixed(2) + "€";
 }
 
 function aggiornaRiepilogoAdmin() {
-  const tot = state.voci.reduce((a,b) => a + parseFloat(b.ore), 0);
-  document.getElementById('a-tot-ore').innerText = tot;
-  document.getElementById('a-tot-euro').innerText = (tot * 15).toFixed(2) + "€";
-  const list = document.getElementById('a-mesi-list');
-  list.innerHTML = "";
-  state.voci.slice(0,10).forEach(v => {
-    const d = document.createElement('div');
-    d.className = 'card item';
-    d.innerHTML = `<span>${v.data} - ${v.luogo}</span><strong>${v.ore}h</strong>`;
-    list.appendChild(d);
+  const totOre = state.voci.reduce((a,b) => a + parseFloat(b.ore), 0);
+  document.getElementById('a-tot-ore').innerText = totOre;
+  document.getElementById('a-tot-euro').innerText = (totOre * state.tariffa).toFixed(2) + "€";
+  
+  const mesiCont = document.getElementById('a-mesi-list');
+  mesiCont.innerHTML = "";
+  const raggruppati = {};
+  state.voci.forEach(v => {
+    const d = new Date(v.data);
+    const k = d.toLocaleString('it-IT', { month: 'long', year: 'numeric' });
+    if(!raggruppati[k]) raggruppati[k] = 0;
+    raggruppati[k] += parseFloat(v.ore);
+  });
+  
+  Object.keys(raggruppati).forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'card item';
+    div.innerHTML = `<div class="item-info"><div class="item-title">${m}</div><div class="item-sub">${raggruppati[m]} ore totali</div></div><div class="item-val">${(raggruppati[m]*state.tariffa).toFixed(2)}€</div>`;
+    mesiCont.appendChild(div);
   });
 }
 
@@ -211,47 +328,142 @@ async function salvaVoce() {
   const data = document.getElementById('v-data').value;
   const ore = document.getElementById('v-ore').value;
   const luogo = document.getElementById('v-luogo').value;
+  const note = document.getElementById('v-note').value;
   if(!luogo) return alert("Inserisci un luogo");
   
-  await fetch(`${SCRIPT_URL}?action=addVoce&email=${state.user.email}&nome=${state.user.name}&data=${data}&ore=${ore}&luogo=${luogo}&note=${document.getElementById('v-note').value}`);
-  alert("Salvato!");
+  showToast("Salvataggio...");
+  await api('addVoce', { email: state.user.email, nome: state.user.name, data, ore, luogo, note });
+  document.getElementById('v-luogo').value = "";
+  document.getElementById('v-note').value = "";
+  showToast("Salvato con successo!");
   caricaUtenteData();
 }
 
-async function ottieniPosizione() {
-  const campo = document.getElementById('v-luogo');
-  campo.value = "Ricerca...";
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`).then(r => r.json());
-    campo.value = `${res.address.road || ''} ${res.address.house_number || ''}, ${res.address.city || ''}`.trim();
-  }, () => { alert("GPS Errato"); campo.value = ""; });
+function openModal(id) { document.getElementById('modal-'+id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById('modal-'+id).style.display = 'none'; }
+
+function showModificaTariffa() {
+  document.getElementById('m-tariffa-val').value = state.tariffa;
+  openModal('tariffa');
+}
+
+async function salvaTariffa() {
+  const nuova = document.getElementById('m-tariffa-val').value;
+  await api('updateTariffa', { tariffa: nuova });
+  state.tariffa = nuova;
+  closeModal('tariffa');
+  caricaAdminData();
+}
+
+function showGestisciLuoghi() {
+  const lista = document.getElementById('m-luoghi-lista');
+  lista.innerHTML = "";
+  state.luoghi.forEach((l, idx) => {
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = `<span>${l}</span><button class="topbar-action" style="color:var(--danger)" onclick="rimuoviLuogo(${idx})">Elimina</button>`;
+    lista.appendChild(d);
+  });
+  openModal('luoghi');
+}
+
+async function aggiungiLuogo() {
+  const n = document.getElementById('m-nuovo-luogo').value;
+  if(!n) return;
+  const nuovi = [...state.luoghi, n];
+  await api('updateLuoghi', { luoghi: JSON.stringify(nuovi) });
+  state.luoghi = nuovi;
+  document.getElementById('m-nuovo-luogo').value = "";
+  showGestisciLuoghi();
+}
+
+async function rimuoviLuogo(idx) {
+  state.luoghi.splice(idx, 1);
+  await api('updateLuoghi', { luoghi: JSON.stringify(state.luoghi) });
+  showGestisciLuoghi();
+}
+
+function showGiornoMax() {
+  if(state.voci.length === 0) {
+    document.getElementById('m-giorno-max-val').innerText = "Nessun dato";
+  } else {
+    const perGiorno = {};
+    state.voci.forEach(v => { perGiorno[v.data] = (perGiorno[v.data] || 0) + parseFloat(v.ore); });
+    let maxG = "", maxV = 0;
+    Object.keys(perGiorno).forEach(g => { if(perGiorno[g] > maxV) { maxV = perGiorno[g]; maxG = g; } });
+    const d = new Date(maxG).toLocaleDateString('it-IT', { day:'2-digit', month:'long' });
+    document.getElementById('m-giorno-max-val').innerText = `${d}: ${maxV} ore`;
+  }
+  openModal('giorno-max');
+}
+
+function inviaRiepilogoMensile() {
+  const totOre = document.getElementById('a-tot-ore').innerText;
+  const totEuro = document.getElementById('a-tot-euro').innerText;
+  const testo = `Riepilogo Ore Lavoro\nOre Totali: ${totOre}\nCosto: ${totEuro}`;
+  if (navigator.share) navigator.share({ title: 'Riepilogo Ore', text: testo });
+  else alert("Copiato negli appunti:\n" + testo);
 }
 
 function aggiornaGrafico() {
   const ctx = document.getElementById('graficoOre');
-  if(!ctx || !state.voci.length) return;
-  const giorni = []; const ore = [];
-  for(let i=6; i>=0; i--) {
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const s = d.toISOString().split('T')[0];
-    giorni.push(d.toLocaleDateString('it-IT', {weekday:'short'}));
-    ore.push(state.voci.filter(v => v.data === s).reduce((a,b) => a + parseFloat(b.ore), 0));
+  if (!ctx || !state.voci || state.voci.length === 0) return;
+  const giorni = []; const datiOre = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dataIso = d.toISOString().split('T')[0];
+    giorni.push(d.toLocaleDateString('it-IT', { weekday: 'short' }));
+    const somma = state.voci.filter(v => v.data === dataIso).reduce((acc, curr) => acc + parseFloat(curr.ore || 0), 0);
+    datiOre.push(somma);
   }
-  if(window.myChart) window.myChart.destroy();
+  if (window.myChart) window.myChart.destroy();
   window.myChart = new Chart(ctx, {
-    type:'bar',
-    data: { labels: giorni, datasets: [{ label:'Ore', data: ore, backgroundColor:'#1a3a6b', borderRadius:5 }] },
-    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} }
+    type: 'bar',
+    data: {
+      labels: giorni,
+      datasets: [{ label: 'Ore', data: datiOre, backgroundColor: '#1a3a6b', borderRadius: 5 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+    }
   });
 }
 
-function inviaRiepilogo() {
-  const testo = `Riepilogo Ore: ${document.getElementById('a-tot-ore').innerText} ore totali.`;
-  if(navigator.share) navigator.share({title:'Riepilogo', text:testo});
-  else alert(testo);
+async function ottieniPosizione() {
+  const campo = document.getElementById('v-luogo');
+  if (!navigator.geolocation) return alert("GPS non supportato");
+  const testoOriginale = campo.value;
+  campo.value = "Ricerca posizione...";
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+      const data = await response.json();
+      if (data.address) {
+        const via = data.address.road || "";
+        const civico = data.address.house_number || "";
+        const citta = data.address.city || data.address.town || "";
+        campo.value = `${via} ${civico}${via && citta ? ',' : ''} ${citta}`.trim().replace(/^,/, '');
+      } else { campo.value = testoOriginale; alert("Indirizzo non trovato"); }
+    } catch (e) { campo.value = testoOriginale; alert("Errore di rete"); }
+  }, () => { campo.value = testoOriginale; alert("Attiva il GPS!"); }, { enableHighAccuracy: true });
 }
 
-document.getElementById('btn-salva-voce').onclick = salvaVoce;
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-salva-voce').addEventListener('click', salvaVoce);
+  document.getElementById('btn-modifica-tariffa').addEventListener('click', showModificaTariffa);
+  document.getElementById('btn-gestisci-luoghi').addEventListener('click', showGestisciLuoghi);
+  document.getElementById('btn-giorno-max').addEventListener('click', showGiornoMax);
+  document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
+  document.getElementById('btn-esporta-pdf-admin').addEventListener('click', () => alert("Generazione PDF..."));
+  document.getElementById('btn-annulla-tariffa').addEventListener('click', () => closeModal('tariffa'));
+  document.getElementById('btn-salva-tariffa').addEventListener('click', salvaTariffa);
+  document.getElementById('btn-aggiungi-luogo').addEventListener('click', aggiungiLuogo);
+  document.getElementById('btn-chiudi-luoghi').addEventListener('click', () => closeModal('luoghi'));
+  document.getElementById('btn-chiudi-giorno-max').addEventListener('click', () => closeModal('giorno-max'));
+});
 </script>
 </body>
 </html>
