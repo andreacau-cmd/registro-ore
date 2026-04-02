@@ -244,7 +244,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="field">
       <label>Luogo</label>
-      <input type="text" id="v-luogo" placeholder="Es. Via Cavur 248">
+      <div class="input-group" style="display: flex; gap: 5px;">
+  <input type="text" id="v-luogo" class="form-control" placeholder="Es. Via Cavur 248" style="flex: 1;">
+  <button class="btn-small" type="button" onclick="ottieniPosizione()" style="min-width: 44px; font-size: 18px;">📍</button>
+</div>
       <div class="tags" id="luoghi-tags"></div>
     </div>
     <div class="field"><label>Note</label><textarea id="v-note" placeholder="Es. con Patrizia, OIS..."></textarea></div>
@@ -916,6 +919,35 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('btn-chiudi-luoghi').addEventListener('click', function(){ closeModal('luoghi'); });
   document.getElementById('btn-chiudi-giorno-max').addEventListener('click', function(){ closeModal('giorno-max'); });
 });
+async function ottieniPosizione() {
+  const campo = document.getElementById('v-luogo');
+  if (!navigator.geolocation) return alert("GPS non supportato");
+  
+  const testoOriginale = campo.value;
+  campo.value = "Ricerca posizione...";
+
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+      const data = await response.json();
+      if (data.address) {
+        const via = data.address.road || "";
+        const civico = data.address.house_number || "";
+        const citta = data.address.city || data.address.town || "";
+        campo.value = `${via} ${civico}${via && citta ? ',' : ''} ${citta}`.trim().replace(/^,/, '');
+      } else {
+        campo.value = testoOriginale;
+        alert("Indirizzo non trovato");
+      }
+    } catch (e) {
+      campo.value = testoOriginale;
+      alert("Errore di rete");
+    }
+  }, () => {
+    campo.value = testoOriginale;
+    alert("Attiva il GPS!");
+  }, { enableHighAccuracy: true });
+}
 </script>
 </body>
 </html>
