@@ -566,10 +566,13 @@ function caricaRiepilogoAnno() {
       +'<div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small">'+r.totGiorni+'</div></div>'
       +'</div>'
       + r.mesi.filter(function(m){ return m.ore > 0; }).map(function(m){
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">'
-          +'<span style="font-weight:500;flex:1;">'+m.mese+'</span>'
-          +'<span style="color:var(--text2);font-size:11px;width:64px;text-align:center;">€'+Number(m.tariffa).toFixed(2)+'/h</span>'
-          +'<span style="font-family:var(--mono);width:120px;text-align:right;">'+Number(m.ore).toFixed(1)+'h — €'+Number(m.euro).toFixed(2)+'</span>'
+        var tar = (m.tariffa && !isNaN(m.tariffa)) ? Number(m.tariffa).toFixed(2) : '—';
+        var ore = Number(m.ore).toFixed(1);
+        var euro = Number(m.euro).toFixed(2);
+        return '<div style="display:grid;grid-template-columns:1fr 60px 130px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;gap:4px;">'
+          +'<span style="font-weight:500;">'+m.mese+'</span>'
+          +'<span style="color:var(--text2);font-size:11px;text-align:center;">€'+tar+'/h</span>'
+          +'<span style="font-family:var(--mono);text-align:right;">'+ore+'h — €'+euro+'</span>'
           +'</div>';
       }).join('');
   });
