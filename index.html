@@ -453,6 +453,10 @@ function handleGoogleLogin(response) {
   state.email = email;
   state.nome = nome;
 
+  localStorage.setItem('ro_email', email);
+  localStorage.setItem('ro_ruolo', ruolo);
+  localStorage.setItem('ro_nome',  nome);
+
   if (ruolo === 'admin') {
     showScreen('admin');
     caricaAdminData();
@@ -471,11 +475,19 @@ function logoutUtente() {
   google.accounts.id.disableAutoSelect();
   state.ruolo=null; state.email=null;
   showScreen('login');
+  localStorage.removeItem('ro_email');
+  localStorage.removeItem('ro_ruolo');
+  localStorage.removeItem('ro_nome');
+  localStorage.removeItem('ro_scadenza');
 }
 function logoutAdmin() {
   google.accounts.id.disableAutoSelect();
   state.ruolo=null; state.email=null;
   showScreen('login');
+  localStorage.removeItem('ro_email');
+  localStorage.removeItem('ro_ruolo');
+  localStorage.removeItem('ro_nome');
+  localStorage.removeItem('ro_scadenza');
 }
 
 function showAdminPin() {
@@ -1050,11 +1062,34 @@ document.addEventListener('DOMContentLoaded', function() {
   popolaTagsLuoghi();
 
   // Google Sign-In inizializzato quando la libreria GSI è pronta
-  if (typeof google !== 'undefined') {
-    initGoogleSignIn();
+  // Prova a ripristinare la sessione salvata
+  var savedEmail = localStorage.getItem('ro_email');
+  var savedRuolo = localStorage.getItem('ro_ruolo');
+  var savedNome  = localStorage.getItem('ro_nome');
+  localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+  if (savedEmail && savedRuolo && UTENTI_AUTORIZZATI[savedEmail]) {
+    state.email = savedEmail;
+    state.ruolo = savedRuolo;
+    state.nome  = savedNome;
+    if (savedRuolo === 'admin') {
+      showScreen('admin');
+      caricaAdminData();
+    } else {
+      showScreen('utente');
+      document.getElementById('u-mese-label').textContent = getMeseNome() + ' ' + state.anno;
+      caricaHomeUtente();
+      popolaFiltroMesi();
+      popolaFiltroMesiRiepilogo();
+      popolaFiltroMesiStats();
+      caricaLuoghiDaFoglio();
+    }
   } else {
-    // Aspetta che la libreria Google sia caricata
-    window.addEventListener('load', initGoogleSignIn);
+    if (typeof google !== 'undefined') {
+      initGoogleSignIn();
+    } else {
+      window.addEventListener('load', initGoogleSignIn);
+    }
   }
   document.getElementById('btn-logout-utente').addEventListener('click', logoutUtente);
   document.getElementById('btn-logout-admin').addEventListener('click', logoutAdmin);
