@@ -153,7 +153,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div id="riepilogo-content"><div class="loader"><div class="spinner"></div></div></div>
     </div>
     <div class="card">
-      <div class="card-title">Totale annuale 2026</div>
+      <div class="card-title" id="titolo-riepilogo-anno">Totale annuale 2026</div>
       <div id="riepilogo-anno"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
@@ -309,7 +309,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — MODIFICA QUI
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
-var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyve-fHpJpMPpcJZwloxrPXnMum3g9CCI1GmSp29HIY3jSsT74bthWA1Uf2Pnug9HqzJg/exec";
+var APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoY8RAcwuSIpJgFu50Po7VUS1XMDA1EljZFRv4kyajBEXH8k3ILZsHMmle_aGSRP_sGw/exec";
 
 // EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
@@ -549,14 +549,15 @@ function caricaRiepilogoDettaglio() {
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getRiepilogoMese',{mese:mese,anno:state.anno}).then(function(r) {
     if(!r||!r.ok) return;
-    el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
-      +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
+el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
+      +'<div class="stat"><div class="stat-label">N° Interventi</div><div class="stat-value small">'+(r.interventi||0)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Totale ore</div><div class="stat-value">'+Number(r.ore).toFixed(2)+'</div></div>'
-      +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+r.tariffa+'/h</div></div>'
+      +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+Number(r.tariffa).toFixed(2)+'/h</div></div>'
       +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.euro).toFixed(2)+'</div></div>'
-      +'</div><div style="background:var(--bg2);border-radius:10px;padding:14px;">'
-      +'<div style="font-size:13px;color:var(--text2);margin-bottom:6px;">Calcolo</div>'
-      +'<div style="font-family:var(--mono);font-size:14px;">'+Number(r.ore).toFixed(2)+' ore × €'+r.tariffa+' = <strong>€'+Number(r.euro).toFixed(2)+'</strong></div></div>';
+      +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
+      +'<div class="stat" style="background:var(--bg2);"><div class="stat-label">Calcolo</div>'
+      +'<div style="font-family:var(--mono);font-size:13px;font-weight:500;margin-top:4px;">'+Number(r.ore).toFixed(2)+' h × €'+Number(r.tariffa).toFixed(2)+' = <strong style="color:var(--accent)">€'+Number(r.euro).toFixed(2)+'</strong></div></div>'
+      +'</div>';
   });
   caricaRiepilogoAnno();
 }
@@ -565,23 +566,35 @@ function caricaRiepilogoAnno() {
   var el = document.getElementById('riepilogo-anno');
   apiCall('getRiepilogoAnno', { anno: state.anno }).then(function(r) {
     if (!r || !r.ok) return;
-    el.innerHTML = '<div class="stat-grid" style="margin-bottom:12px;">'
+    document.getElementById('titolo-riepilogo-anno').textContent = 'Totale annuale ' + state.anno;
+    el.innerHTML = '<div class="stat-grid" style="margin-bottom:16px;">'
       +'<div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.totOre).toFixed(2)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.totEuro).toFixed(2)+'</div></div>'
-      +'<div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small">'+r.totGiorni+'</div></div>'
-      +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+Number(r.tariffa).toFixed(2)+'/h</div></div>'
+      +'<div class="stat"><div class="stat-label">N° Interventi</div><div class="stat-value small">'+(r.mesi.reduce(function(s,m){return s+(m.interventi||0);},0))+'</div></div>'
+      +'<div class="stat"><div class="stat-label">Giorni totali</div><div class="stat-value small">'+r.totGiorni+'</div></div>'
       +'</div>'
-      + '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+      +'<div style="overflow-x:auto;">'
+      +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+      +'<thead><tr style="border-bottom:2px solid var(--border);">'
+      +'<th style="padding:6px 4px 8px 0;text-align:left;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Mese</th>'
+      +'<th style="padding:6px 4px 8px;text-align:center;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Interv.</th>'
+      +'<th style="padding:6px 4px 8px;text-align:center;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Giorni</th>'
+      +'<th style="padding:6px 4px 8px;text-align:center;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tariffa</th>'
+      +'<th style="padding:6px 4px 8px;text-align:right;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ore</th>'
+      +'<th style="padding:6px 0 8px 4px;text-align:right;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Totale</th>'
+      +'</tr></thead><tbody>'
       + r.mesi.filter(function(m){ return m.ore > 0; }).map(function(m){
         var tar = (m.tariffa && !isNaN(m.tariffa)) ? '€'+Number(m.tariffa).toFixed(2)+'/h' : '—';
         return '<tr style="border-bottom:1px solid var(--border);">'
-          +'<td style="padding:8px 4px 8px 0;font-weight:500;">'+m.mese+'</td>'
-          +'<td style="padding:8px 8px;color:var(--text2);font-size:11px;text-align:center;white-space:nowrap;">'+tar+'</td>'
-          +'<td style="padding:8px 4px;font-family:var(--mono);text-align:right;white-space:nowrap;">'+Number(m.ore).toFixed(1)+'h</td>'
-          +'<td style="padding:8px 0 8px 4px;font-family:var(--mono);text-align:right;white-space:nowrap;">€'+Number(m.euro).toFixed(2)+'</td>'
+          +'<td style="padding:9px 4px 9px 0;font-weight:600;font-size:12px;">'+m.mese+'</td>'
+          +'<td style="padding:9px 4px;text-align:center;color:var(--text2);">'+(m.interventi||'—')+'</td>'
+          +'<td style="padding:9px 4px;text-align:center;color:var(--text2);">'+m.giorni+'</td>'
+          +'<td style="padding:9px 4px;font-size:11px;text-align:center;color:var(--text2);white-space:nowrap;">'+tar+'</td>'
+          +'<td style="padding:9px 4px;font-family:var(--mono);text-align:right;white-space:nowrap;">'+Number(m.ore).toFixed(1)+'h</td>'
+          +'<td style="padding:9px 0 9px 4px;font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap;color:var(--accent);">€'+Number(m.euro).toFixed(2)+'</td>'
           +'</tr>';
       }).join('')
-      +'</table>';
+      +'</tbody></table></div>';
   });
 }
 
