@@ -154,7 +154,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div id="riepilogo-content"><div class="loader"><div class="spinner"></div></div></div>
     </div>
     <div class="card">
-      <div class="card-title" id="titolo-riepilogo-anno">Totale annuale 2026</div>
+      <div class="card-title" id="titolo-riepilogo-anno">Totale annuale</div>
       <div id="riepilogo-anno"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
@@ -195,7 +195,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
   <div class="scroll">
     <div class="card">
-      <div class="card-title">Riepilogo annuale 2026</div>
+      <div class="card-title" id="titolo-admin-anno">Riepilogo annuale</div>
       <div class="stat-grid">
         <div class="stat"><div class="stat-label">Ore anno</div><div class="stat-value" id="a-ore-anno">—</div></div>
         <div class="stat"><div class="stat-label">Totale €</div><div class="stat-value euro" id="a-euro-anno">—</div></div>
@@ -359,7 +359,7 @@ var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AG
 var state = {
   ruolo: null,
   meseCorrente: new Date().getMonth(),
-  anno: 2026,
+  anno: new Date().getFullYear(),
   voci: [],
   luoghi: LUOGHI_DEFAULT.slice(),
   editingRow: null,
@@ -865,6 +865,7 @@ function caricaAdminData() {
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getRiepilogoAnno',{anno:state.anno}).then(function(r){
     if(!r||!r.ok) return;
+	document.getElementById('titolo-admin-anno').textContent = 'Riepilogo annuale ' + state.anno;
     document.getElementById('a-ore-anno').textContent   =Number(r.totOre).toFixed(2);
     document.getElementById('a-euro-anno').textContent  ='€ '+Number(r.totEuro).toFixed(2);
     document.getElementById('a-giorni-anno').textContent=r.totGiorni+' gg';
