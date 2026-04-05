@@ -259,7 +259,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
   </div>
 </div>
-
+<!-- MODAL TARIFFA UTENTE -->
+<div class="modal-overlay" id="modal-tariffa-utente">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💶 Modifica tariffa</div>
+    <div class="field"><label>Tariffa €/ora</label><input type="number" id="new-tariffa-utente" step="0.5" min="1"></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Aggiorna la tariffa per il mese corrente.</p>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-secondary" style="flex:1" id="btn-annulla-tariffa-utente">Annulla</button>
+      <button class="btn btn-primary" style="flex:2" id="btn-salva-tariffa-utente"><span>✓</span> Aggiorna</button>
+    </div>
+  </div>
+</div>
 <!-- MODAL TARIFFA -->
 <div class="modal-overlay" id="modal-tariffa">
   <div class="modal">
@@ -830,6 +842,27 @@ function caricaAdminData() {
 
 function showModificaTariffa() { document.getElementById('new-tariffa').value=7; openModal('tariffa'); }
 
+function showModificaTariffaUtente() {
+  // Legge la tariffa corrente dal campo già visualizzato in home
+  var tarAttuale = parseFloat((document.getElementById('u-tariffa').textContent||'').replace(/[^0-9.,]/g,'')) || 7;
+  document.getElementById('new-tariffa-utente').value = tarAttuale;
+  openModal('tariffa-utente');
+}
+
+function salvaTariffaUtente() {
+  var val = parseFloat(document.getElementById('new-tariffa-utente').value);
+  if(!val || val<=0) { toast('⚠ Tariffa non valida'); return; }
+  apiCall('aggiornaTariffa', { tariffa: val, mese: getMeseNome(), anno: state.anno }).then(function(r) {
+    if(r && r.ok) {
+      closeModal('tariffa-utente');
+      toast('✓ Tariffa aggiornata a € ' + val.toFixed(2));
+      caricaHomeUtente(); // ricarica per mostrare il nuovo valore
+    } else {
+      toast('⚠ Errore aggiornamento tariffa');
+    }
+  });
+}
+
 function salvaTariffa() {
   var val=parseFloat(document.getElementById('new-tariffa').value);
   if(!val||val<=0) { toast('⚠ Tariffa non valida'); return; }
@@ -927,6 +960,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('btn-modifica-tariffa').addEventListener('click', showModificaTariffa);
   document.getElementById('btn-cambia-tariffa-utente').addEventListener('click', showModificaTariffaUtente);
+  document.getElementById('btn-annulla-tariffa-utente').addEventListener('click', function(){ closeModal('tariffa-utente'); });
+  document.getElementById('btn-salva-tariffa-utente').addEventListener('click', salvaTariffaUtente);
   document.getElementById('btn-gestisci-luoghi').addEventListener('click', showGestisciLuoghi);
   document.getElementById('btn-giorno-max').addEventListener('click', showGiornoMax);
   document.getElementById('btn-invia-riepilogo').addEventListener('click', inviaRiepilogoMensile);
