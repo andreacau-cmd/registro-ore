@@ -99,7 +99,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen" id="screen-utente">
   <div class="topbar">
     <div><div class="topbar-title">Registro Ore</div><div class="topbar-sub" id="u-mese-label">—</div></div>
-    <button class="topbar-action" id="btn-logout-utente">Esci</button>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <select id="sel-anno-utente" style="font-size:13px;padding:4px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+      <button class="topbar-action" id="btn-logout-utente">Esci</button>
+    </div>
   </div>
   <div class="scroll" id="tab-home">
     <div class="card">
@@ -191,7 +194,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen" id="screen-admin">
   <div class="topbar">
     <div><div class="topbar-title">Amministratore</div><div class="topbar-sub">Pannello di controllo</div></div>
-    <button class="topbar-action" id="btn-logout-admin">Esci</button>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <select id="sel-anno-admin" style="font-size:13px;padding:4px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+      <button class="topbar-action" id="btn-logout-admin">Esci</button>
+    </div>
   </div>
   <div class="scroll">
     <div class="card">
@@ -370,6 +376,30 @@ var state = {
 };
 
 var charts = {};
+var ANNI_DISPONIBILI = [2026, 2027, 2028];
+
+function popolaSelettoreAnno(idSel) {
+  var sel = document.getElementById(idSel);
+  sel.innerHTML = ANNI_DISPONIBILI.map(function(a) {
+    return '<option value="'+a+'"'+(a===state.anno?' selected':'')+'>'+a+'</option>';
+  }).join('');
+}
+
+function cambiaAnno(anno) {
+  state.anno = parseInt(anno);
+  state.meseCorrente = new Date().getMonth();
+  if (state.ruolo === 'admin') {
+    document.getElementById('sel-anno-admin').value = anno;
+    caricaAdminData();
+  } else {
+    document.getElementById('sel-anno-utente').value = anno;
+    document.getElementById('u-mese-label').textContent = getMeseNome() + ' ' + state.anno;
+    caricaHomeUtente();
+    popolaFiltroMesi();
+    popolaFiltroMesiRiepilogo();
+    popolaFiltroMesiStats();
+  }
+}
 
 function toast(msg, dur) {
   var t = document.getElementById('toast');
@@ -466,7 +496,8 @@ function handleGoogleLogin(response) {
   } else {
     showScreen('utente');
     document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
-    caricaHomeUtente();
+    popolaSelettoreAnno('sel-anno-utente');
+	caricaHomeUtente();
     popolaFiltroMesi();
     popolaFiltroMesiRiepilogo();
 	popolaFiltroMesiStats();
@@ -1063,7 +1094,10 @@ function disegnaLineaCumulo(mesi) {
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('v-data').value = todayISO();
+  document.getElementById('sel-anno-utente').addEventListener('change', function(){ cambiaAnno(this.value); });
+  document.getElementById('sel-anno-admin').addEventListener('change', function(){ cambiaAnno(this.value); });
   popolaTagsLuoghi();
+  
 
   // Google Sign-In inizializzato quando la libreria GSI è pronta
   // Prova a ripristinare la sessione salvata
