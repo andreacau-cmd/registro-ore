@@ -403,7 +403,7 @@ function apiCall(action, payload) {
     var params = Object.keys(data).map(function(k){
       return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
     }).join('&');
-    var url = APPS_SCRIPT_URL + '?' + params;
+    var url = (APPS_SCRIPT_URLS[state.anno] || APPS_SCRIPT_URLS[2026]) + '?' + params;
     fetch(url, { method:'GET', redirect:'follow' })
     .then(function(r){ return r.json(); }).then(resolve)
     .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
