@@ -11,73 +11,211 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;--text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;--pill-bg:#e8eef6;--pill-text:#1a3a6b;--shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
-@media(prefers-color-scheme:dark){:root{--bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;--text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--danger:#e05555;--pill-bg:#1e2d46;--pill-text:#7aadee;--shadow:0 2px 16px rgba(0,0,0,0.4);}}
+/* ============================================================
+   VARIABILI E RESET
+   ============================================================ */
+:root{
+  --bg:#f4f3ef;--bg2:#eceae4;--surface:#fff;--border:#dddbd4;
+  --text:#1c1c1e;--text2:#6b6967;--accent:#1a3a6b;--danger:#8b1a1a;
+  --pill-bg:#e8eef6;--pill-text:#1a3a6b;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);--radius:14px;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#111118;--bg2:#1a1a24;--surface:#22222e;--border:#333344;
+    --text:#f0efe8;--text2:#8a8a9a;--accent:#4a7fd4;--danger:#e05555;
+    --pill-bg:#1e2d46;--pill-text:#7aadee;
+    --shadow:0 2px 16px rgba(0,0,0,0.4);
+  }
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
 #app{min-height:100vh;display:flex;flex-direction:column;}
 .screen{display:none;flex-direction:column;min-height:100vh;}
 .screen.active{display:flex;}
+.scroll{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .topbar-title{font-size:17px;font-weight:600;}
 .topbar-sub{font-size:12px;color:var(--text2);margin-top:1px;}
 .topbar-action{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:6px 0;font-family:var(--font);}
-.scroll{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+
+/* ============================================================
+   SELETTORE ANNO
+   ============================================================ */
+.sel-anno{font-size:13px;padding:4px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);}
+
+/* ============================================================
+   CARD E STAT
+   ============================================================ */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
 .card-title{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.card-header .card-title{margin:0;}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .stat{background:var(--bg2);border-radius:10px;padding:14px;}
 .stat-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
 .stat-value{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--text);line-height:1;}
 .stat-value.euro{color:var(--accent);}
 .stat-value.small{font-size:16px;}
+.stat-value.calcolo{font-family:var(--mono);font-size:13px;font-weight:500;margin-top:4px;}
+.stat-value.calcolo strong{color:var(--accent);}
+.stat-rel{position:relative;}
+
+/* ============================================================
+   BOTTONI
+   ============================================================ */
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;}
 .btn:active{transform:scale(0.97);opacity:0.85;}
 .btn-primary{background:var(--accent);color:#fff;padding:15px 20px;font-size:16px;}
 .btn-secondary{background:var(--bg2);color:var(--text);padding:13px 20px;font-size:15px;border:1px solid var(--border);}
 .btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;cursor:pointer;font-family:var(--font);white-space:nowrap;}
+.btn-icon{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;}
+.btn-danger-icon{background:none;border:none;color:var(--danger);font-size:22px;cursor:pointer;padding:4px;}
+.btn-cambia{position:absolute;top:8px;right:8px;background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;}
+.btn-rm-luogo{background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-stack{display:flex;flex-direction:column;gap:10px;}
+
+/* ============================================================
+   FORM
+   ============================================================ */
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
 .field label{font-size:12px;font-weight:600;letter-spacing:0.5px;color:var(--text2);text-transform:uppercase;}
 .field input,.field select,.field textarea{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;font-size:16px;color:var(--text);font-family:var(--font);width:100%;outline:none;transition:border-color 0.2s;-webkit-appearance:none;appearance:none;}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
 .field textarea{resize:none;height:80px;}
+.field-row{display:flex;gap:8px;}
+.field-row input{flex:1;}
 .ore-input{display:flex;align-items:center;gap:10px;}
 .ore-input input{flex:1;text-align:center;font-size:24px;font-family:var(--mono);font-weight:500;}
 .ore-btn{width:44px;height:44px;border-radius:10px;background:var(--bg2);border:1.5px solid var(--border);font-size:22px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.filtro-select{font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);}
+
+/* ============================================================
+   VOCI
+   ============================================================ */
 .voce-item{background:var(--bg2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:6px;}
 .voce-date{font-size:12px;font-family:var(--mono);color:var(--text2);min-width:52px;}
 .voce-body{flex:1;min-width:0;}
 .voce-luogo{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .voce-note{font-size:12px;color:var(--text2);margin-top:2px;}
 .voce-ore{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--accent);flex-shrink:0;}
+
+/* ============================================================
+   BOTTOM NAV
+   ============================================================ */
 .bottom-nav{background:var(--surface);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);position:sticky;bottom:0;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
 .nav-item{display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;cursor:pointer;gap:3px;}
 .nav-icon{font-size:20px;}
 .nav-label{font-size:10px;color:var(--text2);font-weight:500;}
 .nav-item.active .nav-label{color:var(--accent);font-weight:600;}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:none;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));max-height:90vh;overflow-y:auto;}
 .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
 .modal-title{font-size:18px;font-weight:600;margin-bottom:20px;}
+.modal-title-center{text-align:center;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-header .modal-title{margin:0;}
+.modal-footer{display:flex;gap:10px;margin-top:4px;}
+.modal-note{font-size:13px;color:var(--text2);margin-bottom:16px;}
+
+/* ============================================================
+   PIN
+   ============================================================ */
 .pin-dots{display:flex;gap:12px;justify-content:center;margin:20px 0;}
 .pin-dot{width:14px;height:14px;border-radius:50%;background:var(--border);transition:background 0.2s;}
 .pin-dot.filled{background:var(--accent);}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:0 auto;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:260px;margin:10px auto 0;}
 .pin-key{height:64px;border-radius:14px;background:var(--bg2);border:1.5px solid var(--border);font-size:22px;font-weight:500;cursor:pointer;font-family:var(--font);color:var(--text);}
 .pin-key:active{background:var(--accent);color:#fff;}
+.pin-key-small{font-size:14px;}
 .pin-error{color:var(--danger);text-align:center;font-size:13px;min-height:18px;margin-top:8px;}
+
+/* ============================================================
+   LOADER E STATI VUOTI
+   ============================================================ */
 .loader{display:flex;align-items:center;justify-content:center;gap:8px;padding:40px;color:var(--text2);font-size:14px;}
 .spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
+.empty-icon{font-size:40px;margin-bottom:10px;}
+.empty-msg{font-size:14px;}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:12px 20px;border-radius:30px;font-size:14px;font-weight:500;opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;pointer-events:none;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============================================================
+   TAG E PILL
+   ============================================================ */
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
 .tag{background:var(--pill-bg);color:var(--pill-text);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;border:1.5px solid transparent;}
 .tag.selected{border-color:var(--accent);font-weight:600;}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text2);}
-.empty-icon{font-size:40px;margin-bottom:10px;}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+.login-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;}
+.login-icon{font-size:48px;margin-bottom:16px;}
+.login-title{font-size:24px;font-weight:600;margin-bottom:6px;}
+.login-sub{color:var(--text2);font-size:14px;margin-bottom:40px;}
+.login-btn-wrap{display:flex;justify-content:center;margin-bottom:16px;}
+.login-error{color:var(--danger);font-size:13px;text-align:center;min-height:20px;}
+.login-version{margin-top:30px;font-size:12px;color:var(--text2);}
+
+/* ============================================================
+   LISTA LUOGHI ADMIN
+   ============================================================ */
+.luogo-row{display:flex;align-items:center;gap:10px;}
+.luogo-nome{flex:1;padding:10px 14px;background:var(--bg2);border-radius:8px;font-size:14px;}
+
+/* ============================================================
+   TABELLA RIEPILOGO ANNUALE
+   ============================================================ */
+.table-wrap{overflow-x:auto;}
+.table-anno{width:100%;border-collapse:collapse;font-size:13px;}
+.table-anno th{padding:6px 4px 8px;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid var(--border);}
+.table-anno th:first-child{text-align:left;padding-left:0;}
+.table-anno th:last-child{text-align:right;padding-right:0;}
+.table-anno th.center{text-align:center;}
+.table-anno th.right{text-align:right;}
+.table-anno td{padding:9px 4px;border-bottom:1px solid var(--border);}
+.table-anno td.mese{font-weight:600;font-size:12px;padding-left:0;}
+.table-anno td.center{text-align:center;color:var(--text2);}
+.table-anno td.tariffa{font-size:11px;text-align:center;color:var(--text2);white-space:nowrap;}
+.table-anno td.ore{font-family:var(--mono);text-align:right;white-space:nowrap;}
+.table-anno td.totale{font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap;color:var(--accent);padding-right:0;}
+
+/* ============================================================
+   ADMIN — LISTA MESI
+   ============================================================ */
+.admin-mese-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.admin-mese-nome{font-size:14px;font-weight:500;}
+.admin-mese-sub{font-size:12px;color:var(--text2);}
+.admin-mese-euro{font-family:var(--mono);font-weight:600;color:var(--accent);}
+
+/* ============================================================
+   GIORNO MAX
+   ============================================================ */
+.giorno-max-luoghi{font-size:13px;color:var(--text2);}
+.stat-mb{margin-bottom:12px;}
 </style>
 </head>
 <body>
@@ -85,13 +223,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 <!-- LOGIN -->
 <div class="screen active" id="screen-login">
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;">
-    <div style="font-size:48px;margin-bottom:16px;">📋</div>
-    <h1 style="font-size:24px;font-weight:600;margin-bottom:6px;">Registro Ore</h1>
-    <p style="color:var(--text2);font-size:14px;margin-bottom:40px;">Accedi con il tuo account Google</p>
-    <div id="google-signin-btn" style="display:flex;justify-content:center;margin-bottom:16px;"></div>
-    <div id="login-error" style="color:var(--danger);font-size:13px;text-align:center;min-height:20px;"></div>
-    <p style="margin-top:30px;font-size:12px;color:var(--text2);">Versione 1.0 — 2026</p>
+  <div class="login-wrap">
+    <div class="login-icon">📋</div>
+    <h1 class="login-title">Registro Ore</h1>
+    <p class="login-sub">Accedi con il tuo account Google</p>
+    <div id="google-signin-btn" class="login-btn-wrap"></div>
+    <div id="login-error" class="login-error"></div>
+    <p class="login-version">Versione 1.0</p>
   </div>
 </div>
 
@@ -99,11 +237,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen" id="screen-utente">
   <div class="topbar">
     <div><div class="topbar-title">Registro Ore</div><div class="topbar-sub" id="u-mese-label">—</div></div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <select id="sel-anno-utente" style="font-size:13px;padding:4px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+    <div class="topbar-right">
+      <select id="sel-anno-utente" class="sel-anno"></select>
       <button class="topbar-action" id="btn-logout-utente">Esci</button>
     </div>
   </div>
+
+  <!-- TAB HOME -->
   <div class="scroll" id="tab-home">
     <div class="card">
       <div class="card-title">Riepilogo mese</div>
@@ -111,12 +251,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value" id="u-ore-tot">—</div></div>
         <div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro" id="u-euro-tot">—</div></div>
         <div class="stat"><div class="stat-label">Giorni</div><div class="stat-value small" id="u-giorni">—</div></div>
-        <div class="stat" style="position:relative;"><div class="stat-label">Tariffa</div><div class="stat-value small" id="u-tariffa">—</div><button id="btn-cambia-tariffa-utente" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600;">cambia</button></div>
+        <div class="stat stat-rel">
+          <div class="stat-label">Tariffa</div>
+          <div class="stat-value small" id="u-tariffa">—</div>
+          <button id="btn-cambia-tariffa-utente" class="btn-cambia">cambia</button>
+        </div>
       </div>
     </div>
     <div class="card">
       <div class="card-title">Azioni</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="btn-stack">
         <button class="btn btn-primary" id="btn-nuova-voce-home"><span>＋</span> Inserisci nuova voce</button>
         <div class="btn-grid">
           <button class="btn btn-secondary" id="btn-vai-voci"><span>📋</span> Voci mese</button>
@@ -136,23 +280,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div id="u-ultime-voci"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
+
+  <!-- TAB VOCI -->
   <div class="scroll" id="tab-voci" style="display:none;">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="card-title" style="margin:0;">Tutte le voci</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <select id="filtro-mese" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
-          <button id="btn-condividi-pdf-voci" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;" title="Condividi PDF mese">📤</button>
+      <div class="card-header">
+        <div class="card-title">Tutte le voci</div>
+        <div class="topbar-right">
+          <select id="filtro-mese" class="filtro-select"></select>
+          <button id="btn-condividi-pdf-voci" class="btn-icon" title="Condividi PDF mese">📤</button>
         </div>
       </div>
       <div id="lista-voci"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
+
+  <!-- TAB RIEPILOGO -->
   <div class="scroll" id="tab-riepilogo" style="display:none;">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="card-title" style="margin:0;">Riepilogo mensile</div>
-        <select id="filtro-mese-riepilogo" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+      <div class="card-header">
+        <div class="card-title">Riepilogo mensile</div>
+        <select id="filtro-mese-riepilogo" class="filtro-select"></select>
       </div>
       <div id="riepilogo-content"><div class="loader"><div class="spinner"></div></div></div>
     </div>
@@ -161,11 +309,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div id="riepilogo-anno"><div class="loader"><div class="spinner"></div></div></div>
     </div>
   </div>
+
+  <!-- TAB STATISTICHE -->
   <div class="scroll" id="tab-stats" style="display:none;">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="card-title" style="margin:0;">Statistiche mensili</div>
-        <select id="filtro-mese-stats" style="font-size:13px;padding:6px 10px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+      <div class="card-header">
+        <div class="card-title">Statistiche mensili</div>
+        <select id="filtro-mese-stats" class="filtro-select"></select>
       </div>
       <canvas id="chart-luoghi" height="220"></canvas>
     </div>
@@ -174,14 +324,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <canvas id="chart-giorni" height="220"></canvas>
     </div>
     <div class="card">
-      <div class="card-title">Ore per mese — 2026</div>
+      <div class="card-title" id="titolo-chart-mesi">Ore per mese</div>
       <canvas id="chart-mesi" height="220"></canvas>
     </div>
     <div class="card">
-      <div class="card-title">Guadagno cumulativo — 2026</div>
+      <div class="card-title" id="titolo-chart-cumulo">Guadagno cumulativo</div>
       <canvas id="chart-cumulo" height="220"></canvas>
     </div>
   </div>
+
   <nav class="bottom-nav">
     <div class="nav-item active" id="nav-home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></div>
     <div class="nav-item" id="nav-voci"><span class="nav-icon">📋</span><span class="nav-label">Voci</span></div>
@@ -194,8 +345,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="screen" id="screen-admin">
   <div class="topbar">
     <div><div class="topbar-title">Amministratore</div><div class="topbar-sub">Pannello di controllo</div></div>
-    <div style="display:flex;align-items:center;gap:12px;">
-      <select id="sel-anno-admin" style="font-size:13px;padding:4px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--font);"></select>
+    <div class="topbar-right">
+      <select id="sel-anno-admin" class="sel-anno"></select>
       <button class="topbar-action" id="btn-logout-admin">Esci</button>
     </div>
   </div>
@@ -211,7 +362,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="card">
       <div class="card-title">Gestione</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="btn-stack">
         <button class="btn btn-secondary" id="btn-modifica-tariffa"><span>💶</span> Modifica tariffa oraria</button>
         <button class="btn btn-secondary" id="btn-gestisci-luoghi"><span>📍</span> Gestisci luoghi frequenti</button>
         <button class="btn btn-secondary" id="btn-giorno-max"><span>📈</span> Giorno con più ore lavorate</button>
@@ -219,7 +370,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="card">
       <div class="card-title">Comunicazioni</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="btn-stack">
         <button class="btn btn-primary" id="btn-invia-riepilogo"><span>✉</span> Invia riepilogo mensile</button>
         <button class="btn btn-secondary" id="btn-esporta-pdf-admin"><span>📄</span> Esporta PDF mensile</button>
       </div>
@@ -235,13 +386,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="modal-overlay" id="modal-pin">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" style="text-align:center;">🔐 PIN Amministratore</div>
+    <div class="modal-title modal-title-center">🔐 PIN Amministratore</div>
     <div class="pin-dots">
       <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="pin-error" id="pin-error"></div>
-    <div class="pin-pad" style="margin-top:10px;">
+    <div class="pin-pad">
       <button class="pin-key" data-pin="1">1</button>
       <button class="pin-key" data-pin="2">2</button>
       <button class="pin-key" data-pin="3">3</button>
@@ -251,7 +402,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <button class="pin-key" data-pin="7">7</button>
       <button class="pin-key" data-pin="8">8</button>
       <button class="pin-key" data-pin="9">9</button>
-      <button class="pin-key" id="pin-canc" style="font-size:14px;">Canc</button>
+      <button class="pin-key pin-key-small" id="pin-canc">Canc</button>
       <button class="pin-key" data-pin="0">0</button>
       <button class="pin-key" id="pin-del">⌫</button>
     </div>
@@ -262,9 +413,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="modal-overlay" id="modal-voce">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <div class="modal-title" id="modal-voce-title" style="margin:0;">Nuova voce</div>
-      <button id="btn-elimina-voce" style="display:none;background:none;border:none;color:var(--danger);font-size:22px;cursor:pointer;padding:4px;">🗑️</button>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-voce-title">Nuova voce</div>
+      <button id="btn-elimina-voce" class="btn-danger-icon" style="display:none;">🗑️</button>
     </div>
     <div class="field"><label>Data</label><input type="date" id="v-data"></div>
     <div class="field">
@@ -277,37 +428,39 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="field">
       <label>Luogo</label>
-      <input type="text" id="v-luogo" placeholder="Es. Via Cavur 248">
+      <input type="text" id="v-luogo" placeholder="Es. Via Cavour 248">
       <div class="tags" id="luoghi-tags"></div>
     </div>
     <div class="field"><label>Note</label><textarea id="v-note" placeholder="Es. con Patrizia, OIS..."></textarea></div>
-    <div style="display:flex;gap:10px;margin-top:4px;">
+    <div class="modal-footer">
       <button class="btn btn-secondary" style="flex:1" id="btn-annulla-voce">Annulla</button>
       <button class="btn btn-primary" style="flex:2" id="btn-salva-voce"><span>✓</span> Salva voce</button>
     </div>
   </div>
 </div>
+
 <!-- MODAL TARIFFA UTENTE -->
 <div class="modal-overlay" id="modal-tariffa-utente">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">💶 Modifica tariffa</div>
     <div class="field"><label>Tariffa €/ora</label><input type="number" id="new-tariffa-utente" step="0.5" min="1"></div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Aggiorna la tariffa per il mese corrente.</p>
-    <div style="display:flex;gap:10px;">
+    <p class="modal-note">Aggiorna la tariffa per il mese corrente.</p>
+    <div class="modal-footer">
       <button class="btn btn-secondary" style="flex:1" id="btn-annulla-tariffa-utente">Annulla</button>
       <button class="btn btn-primary" style="flex:2" id="btn-salva-tariffa-utente"><span>✓</span> Aggiorna</button>
     </div>
   </div>
 </div>
-<!-- MODAL TARIFFA -->
+
+<!-- MODAL TARIFFA ADMIN -->
 <div class="modal-overlay" id="modal-tariffa">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">💶 Modifica tariffa</div>
     <div class="field"><label>Tariffa €/ora</label><input type="number" id="new-tariffa" step="0.5" min="1"></div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Aggiorna la tariffa sul foglio del mese corrente.</p>
-    <div style="display:flex;gap:10px;">
+    <p class="modal-note">Aggiorna la tariffa sul foglio del mese corrente.</p>
+    <div class="modal-footer">
       <button class="btn btn-secondary" style="flex:1" id="btn-annulla-tariffa">Annulla</button>
       <button class="btn btn-primary" style="flex:2" id="btn-salva-tariffa"><span>✓</span> Aggiorna</button>
     </div>
@@ -319,12 +472,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">📍 Luoghi frequenti</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Appaiono come suggerimenti nel form di inserimento.</p>
-    <div id="lista-luoghi-admin" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <p class="modal-note">Appaiono come suggerimenti nel form di inserimento.</p>
+    <div id="lista-luoghi-admin" class="btn-stack" style="margin-bottom:16px;"></div>
     <div class="field">
       <label>Aggiungi luogo</label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="nuovo-luogo" placeholder="Nome del luogo" style="flex:1">
+      <div class="field-row">
+        <input type="text" id="nuovo-luogo" placeholder="Nome del luogo">
         <button class="btn-small" id="btn-aggiungi-luogo">+ Aggiungi</button>
       </div>
     </div>
@@ -337,7 +490,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">📈 Giorno con più ore</div>
-    <div id="giorno-max-content" style="padding:10px 0;"></div>
+    <div id="giorno-max-content"></div>
     <button class="btn btn-secondary" style="margin-top:16px;" id="btn-chiudi-giorno-max">Chiudi</button>
   </div>
 </div>
@@ -354,7 +507,6 @@ var APPS_SCRIPT_URLS = {
   2027: "https://script.google.com/macros/s/AKfycbxKlRJeoVXLbVtC8dh7sRJ6LLk-ELyLG8qLTjNViBPW_j_76hZEYw2GmoLEeyWSQZWrxA/exec",
   2028: "https://script.google.com/macros/s/AKfycbzQGXWmi2aOACmLBdpl2DXHdywQM-1lqkV0yoEn2kHj46GWXI1sp8tT0LFekbXKhhrv/exec"
 };
-// EMAIL AUTORIZZATE — aggiungi/modifica le email degli utenti
 var UTENTI_AUTORIZZATI = {
   "andrea.cau.import@gmail.com":  "admin",
   "blackjad555@gmail.com": "utente",
@@ -362,7 +514,7 @@ var UTENTI_AUTORIZZATI = {
   "INCOLLA_EMAIL_UTENTE3@gmail.com": "utente"
 };
 
-var LUOGHI_DEFAULT = ["Subburra","Via Cavur 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonina"];
+var LUOGHI_DEFAULT = ["Subburra","Via Cavour 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonnina"];
 var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
 
 var state = {
@@ -424,7 +576,6 @@ function apiCall(action, payload) {
       resolve(demoData(action)); return;
     }
     var data = Object.assign({ action: action }, payload || {});
-    // Manda giorno/mese/anno come interi separati — nessuna conversione fuso orario
     if (data.data) {
       var parts = String(data.data).split('-');
       data.dataAnno   = parseInt(parts[0]);
@@ -434,7 +585,7 @@ function apiCall(action, payload) {
     var params = Object.keys(data).map(function(k){
       return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
     }).join('&');
-    var url = (APPS_SCRIPT_URLS[state.anno] || APPS_SCRIPT_URLS[2026]) + '?' + params;
+    var url = currentUrl + '?' + params;
     fetch(url, { method:'GET', redirect:'follow' })
     .then(function(r){ return r.json(); }).then(resolve)
     .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
@@ -443,17 +594,17 @@ function apiCall(action, payload) {
 
 function demoData(action) {
   var v = [
-    {riga:4,data:'2026-03-03',ore:2,luogo:'Via Cavur 248',note:''},
+    {riga:4,data:'2026-03-03',ore:2,luogo:'Via Cavour 248',note:''},
     {riga:5,data:'2026-03-03',ore:1,luogo:'Tiburtina',note:'con Patrizia'},
     {riga:6,data:'2026-03-10',ore:2,luogo:'San Paolo OIS',note:''},
     {riga:7,data:'2026-03-12',ore:1.5,luogo:'Via G. Lanza 146',note:''}
   ];
   if(action==='getVoci') return {ok:true,voci:v};
-  if(action==='getRiepilogoMese') return {ok:true,giorni:4,ore:6.5,euro:45.5,tariffa:7};
+  if(action==='getRiepilogoMese') return {ok:true,interventi:4,giorni:4,ore:6.5,euro:45.5,tariffa:7};
   if(action==='getRiepilogoAnno') return {ok:true,
-    mesi:MESI.map(function(m,i){return {mese:m,giorni:i===2?4:0,ore:i===2?6.5:0,euro:i===2?45.5:0};}),
+    mesi:MESI.map(function(m,i){return {mese:m,interventi:i===2?4:0,giorni:i===2?4:0,ore:i===2?6.5:0,euro:i===2?45.5:0,tariffa:7};}),
     totOre:6.5,totEuro:45.5,totGiorni:4,tariffa:7};
-  if(action==='getGiornoMax') return {ok:true,data:'2026-03-03',ore:3,luoghi:['Via Cavur 248','Tiburtina']};
+  if(action==='getGiornoMax') return {ok:true,data:'2026-03-03',ore:3,luoghi:['Via Cavour 248','Tiburtina']};
   return {ok:true};
 }
 
@@ -472,7 +623,6 @@ function initGoogleSignIn() {
 }
 
 function handleGoogleLogin(response) {
-  // Decodifica il JWT token di Google
   var payload = JSON.parse(atob(response.credential.split('.')[1]));
   var email = payload.email;
   var nome = payload.name;
@@ -485,44 +635,37 @@ function handleGoogleLogin(response) {
 
   state.ruolo = ruolo;
   state.email = email;
-  state.nome = nome;
+  state.nome  = nome;
 
-  localStorage.setItem('ro_email', email);
-  localStorage.setItem('ro_ruolo', ruolo);
-  localStorage.setItem('ro_nome',  nome);
+  localStorage.setItem('ro_email',    email);
+  localStorage.setItem('ro_ruolo',    ruolo);
+  localStorage.setItem('ro_nome',     nome);
+  localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   if (ruolo === 'admin') {
+    popolaSelettoreAnno('sel-anno-admin');
     showScreen('admin');
     caricaAdminData();
   } else {
     showScreen('utente');
     document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
     popolaSelettoreAnno('sel-anno-utente');
-	caricaHomeUtente();
+    caricaHomeUtente();
     popolaFiltroMesi();
     popolaFiltroMesiRiepilogo();
-	popolaFiltroMesiStats();
+    popolaFiltroMesiStats();
     caricaLuoghiDaFoglio();
   }
 }
 
-function logoutUtente() {
+function logout() {
   google.accounts.id.disableAutoSelect();
-  state.ruolo=null; state.email=null;
-  showScreen('login');
+  state.ruolo = null; state.email = null;
   localStorage.removeItem('ro_email');
   localStorage.removeItem('ro_ruolo');
   localStorage.removeItem('ro_nome');
   localStorage.removeItem('ro_scadenza');
-}
-function logoutAdmin() {
-  google.accounts.id.disableAutoSelect();
-  state.ruolo=null; state.email=null;
   showScreen('login');
-  localStorage.removeItem('ro_email');
-  localStorage.removeItem('ro_ruolo');
-  localStorage.removeItem('ro_nome');
-  localStorage.removeItem('ro_scadenza');
 }
 
 function showAdminPin() {
@@ -567,7 +710,7 @@ function caricaUltimeVoci() {
   apiCall('getVoci',{mese:getMeseNome(),anno:state.anno}).then(function(r) {
     var el=document.getElementById('u-ultime-voci');
     if(!r||!r.ok||!r.voci||!r.voci.length) {
-      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce inserita</div></div>';
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-msg">Nessuna voce inserita</div></div>';
       return;
     }
     r.voci.forEach(function(v){ v.meseFoglio = getMeseNome(); });
@@ -609,7 +752,7 @@ function caricaVoci() {
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getVoci',{mese:MESI[mIdx],anno:state.anno}).then(function(r) {
     if(!r||!r.ok||!r.voci||!r.voci.length) {
-      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:14px">Nessuna voce</div></div>';
+      el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-msg">Nessuna voce</div></div>';
       return;
     }
     r.voci.forEach(function(v){ v.meseFoglio = MESI[mIdx]; });
@@ -634,14 +777,14 @@ function caricaRiepilogoDettaglio() {
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getRiepilogoMese',{mese:mese,anno:state.anno}).then(function(r) {
     if(!r||!r.ok) return;
-el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
+    el.innerHTML='<div class="stat-grid" style="margin-bottom:16px;">'
       +'<div class="stat"><div class="stat-label">N° Interventi</div><div class="stat-value small">'+(r.interventi||0)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Totale ore</div><div class="stat-value">'+Number(r.ore).toFixed(2)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Tariffa</div><div class="stat-value small">€'+Number(r.tariffa).toFixed(2)+'/h</div></div>'
       +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.euro).toFixed(2)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Giorni lavorati</div><div class="stat-value small">'+r.giorni+'</div></div>'
-      +'<div class="stat" style="background:var(--bg2);"><div class="stat-label">Calcolo</div>'
-      +'<div style="font-family:var(--mono);font-size:13px;font-weight:500;margin-top:4px;">'+Number(r.ore).toFixed(2)+' h × €'+Number(r.tariffa).toFixed(2)+' = <strong style="color:var(--accent)">€'+Number(r.euro).toFixed(2)+'</strong></div></div>'
+      +'<div class="stat"><div class="stat-label">Calcolo</div>'
+      +'<div class="stat-value calcolo">'+Number(r.ore).toFixed(2)+' h × €'+Number(r.tariffa).toFixed(2)+' = <strong>€'+Number(r.euro).toFixed(2)+'</strong></div></div>'
       +'</div>';
   });
   caricaRiepilogoAnno();
@@ -652,31 +795,29 @@ function caricaRiepilogoAnno() {
   apiCall('getRiepilogoAnno', { anno: state.anno }).then(function(r) {
     if (!r || !r.ok) return;
     document.getElementById('titolo-riepilogo-anno').textContent = 'Totale annuale ' + state.anno;
+    document.getElementById('titolo-chart-mesi').textContent = 'Ore per mese — ' + state.anno;
+    document.getElementById('titolo-chart-cumulo').textContent = 'Guadagno cumulativo — ' + state.anno;
     el.innerHTML = '<div class="stat-grid" style="margin-bottom:16px;">'
       +'<div class="stat"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.totOre).toFixed(2)+'</div></div>'
       +'<div class="stat"><div class="stat-label">Guadagnato</div><div class="stat-value euro">€'+Number(r.totEuro).toFixed(2)+'</div></div>'
       +'<div class="stat"><div class="stat-label">N° Interventi</div><div class="stat-value small">'+(r.mesi.reduce(function(s,m){return s+(m.interventi||0);},0))+'</div></div>'
       +'<div class="stat"><div class="stat-label">Giorni totali</div><div class="stat-value small">'+r.totGiorni+'</div></div>'
       +'</div>'
-      +'<div style="overflow-x:auto;">'
-      +'<table style="width:100%;border-collapse:collapse;font-size:13px;">'
-      +'<thead><tr style="border-bottom:2px solid var(--border);">'
-      +'<th style="padding:6px 4px 8px 0;text-align:left;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Mese</th>'
-      +'<th style="padding:6px 4px 8px;text-align:center;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Interv.</th>'
-      +'<th style="padding:6px 4px 8px;text-align:center;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Giorni</th>'
-      +'<th style="padding:6px 4px 8px;text-align:center;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tariffa</th>'
-      +'<th style="padding:6px 4px 8px;text-align:right;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Ore</th>'
-      +'<th style="padding:6px 0 8px 4px;text-align:right;font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Totale</th>'
+      +'<div class="table-wrap">'
+      +'<table class="table-anno">'
+      +'<thead><tr>'
+      +'<th>Mese</th><th class="center">Interv.</th><th class="center">Giorni</th>'
+      +'<th class="center">Tariffa</th><th class="right">Ore</th><th class="right">Totale</th>'
       +'</tr></thead><tbody>'
       + r.mesi.filter(function(m){ return m.ore > 0; }).map(function(m){
         var tar = (m.tariffa && !isNaN(m.tariffa)) ? '€'+Number(m.tariffa).toFixed(2)+'/h' : '—';
-        return '<tr style="border-bottom:1px solid var(--border);">'
-          +'<td style="padding:9px 4px 9px 0;font-weight:600;font-size:12px;">'+m.mese+'</td>'
-          +'<td style="padding:9px 4px;text-align:center;color:var(--text2);">'+(m.interventi||'—')+'</td>'
-          +'<td style="padding:9px 4px;text-align:center;color:var(--text2);">'+m.giorni+'</td>'
-          +'<td style="padding:9px 4px;font-size:11px;text-align:center;color:var(--text2);white-space:nowrap;">'+tar+'</td>'
-          +'<td style="padding:9px 4px;font-family:var(--mono);text-align:right;white-space:nowrap;">'+Number(m.ore).toFixed(1)+'h</td>'
-          +'<td style="padding:9px 0 9px 4px;font-family:var(--mono);font-weight:600;text-align:right;white-space:nowrap;color:var(--accent);">€'+Number(m.euro).toFixed(2)+'</td>'
+        return '<tr>'
+          +'<td class="mese">'+m.mese+'</td>'
+          +'<td class="center">'+(m.interventi||'—')+'</td>'
+          +'<td class="center">'+m.giorni+'</td>'
+          +'<td class="tariffa">'+tar+'</td>'
+          +'<td class="ore">'+Number(m.ore).toFixed(1)+'h</td>'
+          +'<td class="totale">€'+Number(m.euro).toFixed(2)+'</td>'
           +'</tr>';
       }).join('')
       +'</tbody></table></div>';
@@ -763,14 +904,12 @@ function salvaVoce() {
   if(!ore||ore<=0)  { toast('⚠ Inserisci le ore');   return; }
   if(!luogo)        { toast('⚠ Inserisci il luogo'); return; }
 
-  // Determina il mese dalla data inserita
   var dataParts = data.split('-');
   var meseIdxDaData = parseInt(dataParts[1]) - 1;
   var meseDaData = MESI[meseIdxDaData];
   var corrente = state.meseCorrente;
   var precedente = corrente === 0 ? 11 : corrente - 1;
 
-  // Controllo solo per nuove voci
   if (!state.editingRow) {
     if (meseIdxDaData !== corrente && meseIdxDaData !== precedente) {
       toast('⚠ Puoi inserire solo nel mese corrente o in quello precedente');
@@ -823,28 +962,34 @@ function inviaEmailUtente() {
   });
 }
 
+function _pdfBlob(base64) {
+  var byteChars = atob(base64);
+  var byteNums = new Array(byteChars.length);
+  for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
+  return new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+}
+
+function _condividiOScarica(blob, fileName) {
+  var file = new File([blob], fileName, { type: 'application/pdf' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file], title: fileName }).catch(function() {});
+  } else {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+}
+
 function condividiPDFMese() {
   var mIdx = parseInt(document.getElementById('filtro-mese').value);
   var mese = MESI[mIdx];
   toast('⏳ Generazione PDF ' + mese + '...');
   apiCall('getPdfBase64', { mese: mese, anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
-    var byteChars = atob(r.data);
-    var byteNums = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
-    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
-    var fileName = 'RegistroOre_' + mese + '_' + state.anno + '.pdf';
-    var file = new File([blob], fileName, { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: fileName }).catch(function() {});
-    } else {
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+    _condividiOScarica(_pdfBlob(r.data), 'RegistroOre_' + mese + '_' + state.anno + '.pdf');
   });
 }
 
@@ -852,28 +997,7 @@ function condividiPDF() {
   toast('⏳ Generazione PDF...');
   apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.data) { toast('⚠ Errore PDF'); return; }
-    // Converti base64 in blob PDF
-    var byteChars = atob(r.data);
-    var byteNums = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) {
-      byteNums[i] = byteChars.charCodeAt(i);
-    }
-    var byteArray = new Uint8Array(byteNums);
-    var blob = new Blob([byteArray], { type: 'application/pdf' });
-    var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
-    var file = new File([blob], fileName, { type: 'application/pdf' });
-    // Su mobile condividi il file direttamente
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({ files: [file], title: fileName }).catch(function() {});
-    } else {
-      // Fallback — scarica il file
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = fileName;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
+    _condividiOScarica(_pdfBlob(r.data), 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf');
   });
 }
 
@@ -881,10 +1005,7 @@ function esportaPDF() {
   toast('📄 Generazione PDF...');
   apiCall('getPdfBase64', { mese: getMeseNome(), anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.data) { toast('⚠ Errore export PDF'); return; }
-    var byteChars = atob(r.data);
-    var byteNums = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) { byteNums[i] = byteChars.charCodeAt(i); }
-    var blob = new Blob([new Uint8Array(byteNums)], { type: 'application/pdf' });
+    var blob = _pdfBlob(r.data);
     var fileName = 'RegistroOre_' + getMeseNome() + '_' + state.anno + '.pdf';
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -900,16 +1021,16 @@ function caricaAdminData() {
   el.innerHTML='<div class="loader"><div class="spinner"></div></div>';
   apiCall('getRiepilogoAnno',{anno:state.anno}).then(function(r){
     if(!r||!r.ok) return;
-	document.getElementById('titolo-admin-anno').textContent = 'Riepilogo annuale ' + state.anno;
-    document.getElementById('a-ore-anno').textContent   =Number(r.totOre).toFixed(2);
-    document.getElementById('a-euro-anno').textContent  ='€ '+Number(r.totEuro).toFixed(2);
-    document.getElementById('a-giorni-anno').textContent=r.totGiorni+' gg';
-    document.getElementById('a-tariffa').textContent    ='€ '+Number(r.tariffa).toFixed(2)+'/h';
+    document.getElementById('titolo-admin-anno').textContent = 'Riepilogo annuale ' + state.anno;
+    document.getElementById('a-ore-anno').textContent   = Number(r.totOre).toFixed(2);
+    document.getElementById('a-euro-anno').textContent  = '€ '+Number(r.totEuro).toFixed(2);
+    document.getElementById('a-giorni-anno').textContent = r.totGiorni+' gg';
+    document.getElementById('a-tariffa').textContent    = '€ '+Number(r.tariffa).toFixed(2)+'/h';
     el.innerHTML=r.mesi.map(function(m){
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
-        +'<div><div style="font-size:14px;font-weight:500;">'+m.mese+'</div>'
-        +'<div style="font-size:12px;color:var(--text2);">'+m.giorni+' giorni · '+Number(m.ore).toFixed(1)+'h</div></div>'
-        +'<div style="font-family:var(--mono);font-weight:600;color:var(--accent);">€ '+Number(m.euro).toFixed(2)+'</div></div>';
+      return '<div class="admin-mese-row">'
+        +'<div><div class="admin-mese-nome">'+m.mese+'</div>'
+        +'<div class="admin-mese-sub">'+m.giorni+' giorni · '+Number(m.ore).toFixed(1)+'h</div></div>'
+        +'<div class="admin-mese-euro">€ '+Number(m.euro).toFixed(2)+'</div></div>';
     }).join('');
   });
 }
@@ -917,7 +1038,6 @@ function caricaAdminData() {
 function showModificaTariffa() { document.getElementById('new-tariffa').value=7; openModal('tariffa'); }
 
 function showModificaTariffaUtente() {
-  // Legge la tariffa corrente dal campo già visualizzato in home
   var tarAttuale = parseFloat((document.getElementById('u-tariffa').textContent||'').replace(/[^0-9.,]/g,'')) || 7;
   document.getElementById('new-tariffa-utente').value = tarAttuale;
   openModal('tariffa-utente');
@@ -930,7 +1050,7 @@ function salvaTariffaUtente() {
     if(r && r.ok) {
       closeModal('tariffa-utente');
       toast('✓ Tariffa aggiornata a € ' + val.toFixed(2));
-      caricaHomeUtente(); // ricarica per mostrare il nuovo valore
+      caricaHomeUtente();
     } else {
       toast('⚠ Errore aggiornamento tariffa');
     }
@@ -949,9 +1069,9 @@ function salvaTariffa() {
 function showGestisciLuoghi() {
   var lista=document.getElementById('lista-luoghi-admin');
   lista.innerHTML=state.luoghi.map(function(l,i){
-    return '<div style="display:flex;align-items:center;gap:10px;">'
-      +'<div style="flex:1;padding:10px 14px;background:var(--bg2);border-radius:8px;font-size:14px;">'+l+'</div>'
-      +'<button data-idx="'+i+'" class="btn-rm-luogo" style="background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;">✕</button></div>';
+    return '<div class="luogo-row">'
+      +'<div class="luogo-nome">'+l+'</div>'
+      +'<button data-idx="'+i+'" class="btn-rm-luogo">✕</button></div>';
   }).join('');
   lista.querySelectorAll('.btn-rm-luogo').forEach(function(btn){
     btn.addEventListener('click',function(){ rimuoviLuogo(parseInt(btn.dataset.idx)); });
@@ -972,10 +1092,13 @@ function rimuoviLuogo(idx) { state.luoghi.splice(idx,1); popolaTagsLuoghi(); sho
 function showGiornoMax() {
   apiCall('getGiornoMax',{mese:getMeseNome(),anno:state.anno}).then(function(r){
     var el=document.getElementById('giorno-max-content');
-    if(!r||!r.ok||!r.data) { el.innerHTML='<p style="color:var(--text2)">Nessun dato disponibile</p>'; }
-    else { el.innerHTML='<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
-      +'<div class="stat" style="margin-bottom:12px;"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.ore).toFixed(1)+'</div></div>'
-      +'<div style="font-size:13px;color:var(--text2);">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>'; }
+    if(!r||!r.ok||!r.data) {
+      el.innerHTML='<p class="giorno-max-luoghi">Nessun dato disponibile</p>';
+    } else {
+      el.innerHTML='<div class="stat stat-mb"><div class="stat-label">Data</div><div class="stat-value small">'+formatDate(r.data)+'</div></div>'
+        +'<div class="stat stat-mb"><div class="stat-label">Ore totali</div><div class="stat-value">'+Number(r.ore).toFixed(1)+'</div></div>'
+        +'<div class="giorno-max-luoghi">Luoghi: '+(r.luoghi||[]).join(', ')+'</div>';
+    }
     openModal('giorno-max');
   });
 }
@@ -996,12 +1119,11 @@ function popolaFiltroMesiStats() {
 function caricaStatistiche() {
   var mIdx = parseInt(document.getElementById('filtro-mese-stats').value);
   var mese = MESI[mIdx];
+  var GIORNI_SETTIMANA = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
 
-  // Grafici mensili — ore per luogo e per giorno dalle voci
   apiCall('getVoci', { mese: mese, anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.voci) return;
     var perLuogo = {}, perGiorno = {};
-    var GIORNI_SETTIMANA = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
     r.voci.forEach(function(v) {
       var luogo = v.luogo || 'Altro';
       perLuogo[luogo] = (perLuogo[luogo] || 0) + v.ore;
@@ -1016,7 +1138,6 @@ function caricaStatistiche() {
     disegnaBareGiorni(perGiorno);
   });
 
-  // Grafici annuali — usa getRiepilogoAnno già esistente
   apiCall('getRiepilogoAnno', { anno: state.anno }).then(function(r) {
     if (!r || !r.ok) return;
     disegnaBarceMesi(r.mesi);
@@ -1091,32 +1212,32 @@ function disegnaLineaCumulo(mesi) {
 }
 
 // ============================================================
-// EVENT LISTENERS — tutti qui, zero onclick inline
+// EVENT LISTENERS
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('v-data').value = todayISO();
   document.getElementById('sel-anno-utente').addEventListener('change', function(){ cambiaAnno(this.value); });
   document.getElementById('sel-anno-admin').addEventListener('change', function(){ cambiaAnno(this.value); });
   popolaTagsLuoghi();
-  
 
-  // Google Sign-In inizializzato quando la libreria GSI è pronta
-  // Prova a ripristinare la sessione salvata
-  var savedEmail = localStorage.getItem('ro_email');
-  var savedRuolo = localStorage.getItem('ro_ruolo');
-  var savedNome  = localStorage.getItem('ro_nome');
-  localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
+  var savedEmail    = localStorage.getItem('ro_email');
+  var savedRuolo    = localStorage.getItem('ro_ruolo');
+  var savedNome     = localStorage.getItem('ro_nome');
+  var savedScadenza = localStorage.getItem('ro_scadenza');
 
-  if (savedEmail && savedRuolo && UTENTI_AUTORIZZATI[savedEmail]) {
+  if (savedEmail && savedRuolo && UTENTI_AUTORIZZATI[savedEmail]
+      && savedScadenza && Date.now() < parseInt(savedScadenza)) {
     state.email = savedEmail;
     state.ruolo = savedRuolo;
     state.nome  = savedNome;
     if (savedRuolo === 'admin') {
+      popolaSelettoreAnno('sel-anno-admin');
       showScreen('admin');
       caricaAdminData();
     } else {
       showScreen('utente');
       document.getElementById('u-mese-label').textContent = getMeseNome() + ' ' + state.anno;
+      popolaSelettoreAnno('sel-anno-utente');
       caricaHomeUtente();
       popolaFiltroMesi();
       popolaFiltroMesiRiepilogo();
@@ -1130,8 +1251,9 @@ document.addEventListener('DOMContentLoaded', function() {
       window.addEventListener('load', initGoogleSignIn);
     }
   }
-  document.getElementById('btn-logout-utente').addEventListener('click', logoutUtente);
-  document.getElementById('btn-logout-admin').addEventListener('click', logoutAdmin);
+
+  document.getElementById('btn-logout-utente').addEventListener('click', logout);
+  document.getElementById('btn-logout-admin').addEventListener('click', logout);
 
   document.getElementById('btn-nuova-voce-home').addEventListener('click', showNuovaVoce);
   document.getElementById('btn-vai-voci').addEventListener('click', function(){ switchTab('voci'); });
