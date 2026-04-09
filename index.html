@@ -77,7 +77,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;font-family:var(--font);font-weight:500;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;}
 .btn:active{transform:scale(0.97);opacity:0.85;}
 .btn-primary{background:var(--accent);color:#fff;padding:15px 20px;font-size:16px;}
-.btn-danger{background:var(--danger);color:#fff;padding:15px 20px;font-size:16px;}
 .btn-secondary{background:var(--bg2);color:var(--text);padding:13px 20px;font-size:15px;border:1px solid var(--border);}
 .btn-small{padding:8px 14px;font-size:13px;background:var(--pill-bg);color:var(--pill-text);border-radius:8px;border:none;cursor:pointer;font-family:var(--font);white-space:nowrap;}
 .btn-icon{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;}
@@ -86,6 +85,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .btn-rm-luogo{background:none;border:none;color:var(--danger);font-size:18px;cursor:pointer;padding:6px;}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .btn-stack{display:flex;flex-direction:column;gap:10px;}
+.btn-danger{background:var(--danger);color:#fff;padding:15px 20px;font-size:16px;}
+.mese-stato{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-left:8px;}
+.mese-stato.aperto{background:rgba(74,127,212,0.15);color:var(--accent);}
+.mese-stato.chiuso{background:rgba(139,26,26,0.12);color:var(--danger);}
 
 /* ============================================================
    FORM
@@ -217,9 +220,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
    ============================================================ */
 .giorno-max-luoghi{font-size:13px;color:var(--text2);}
 .stat-mb{margin-bottom:12px;}
-.mese-stato{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-left:8px;}
-.mese-stato.aperto{background:rgba(74,127,212,0.15);color:var(--accent);}
-.mese-stato.chiuso{background:rgba(139,26,26,0.12);color:var(--danger);}
 </style>
 </head>
 <body>
@@ -354,7 +354,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <button class="topbar-action" id="btn-logout-admin">Esci</button>
     </div>
   </div>
-  <div class="scroll">
+  <div class="scroll" id="scroll-admin">
     <div class="card">
       <div class="card-title" id="titolo-admin-anno">Riepilogo annuale</div>
       <div class="stat-grid">
@@ -413,6 +413,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="nav-item" id="nav-admin-stats"><span class="nav-icon">📈</span><span class="nav-label">Statistiche</span></div>
   </nav>
 </div>
+
 <!-- MODAL GESTIONE MESE -->
 <div class="modal-overlay" id="modal-gestione-mese">
   <div class="modal">
@@ -426,6 +427,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <button class="btn btn-secondary" style="margin-top:10px;" id="btn-chiudi-modal-mese">Annulla</button>
   </div>
 </div>
+
 <!-- MODAL PIN -->
 <div class="modal-overlay" id="modal-pin">
   <div class="modal">
@@ -572,62 +574,6 @@ var state = {
 };
 
 var charts = {};
-var chartsAdmin = {};
-
-function _disegnaDonut(id, perLuogo) {
-  var store = id.includes('admin') ? chartsAdmin : charts;
-  var labels = Object.keys(perLuogo);
-  var valori = labels.map(function(k){ return perLuogo[k]; });
-  var colori = labels.map(function(_,i){ return 'hsl('+(i*53%360)+',55%,55%)'; });
-  if (store.luoghi) store.luoghi.destroy();
-  var ctx = document.getElementById(id).getContext('2d');
-  store.luoghi = new Chart(ctx, {
-    type: 'doughnut',
-    data: { labels: labels, datasets: [{ data: valori, backgroundColor: colori, borderWidth: 0 }] },
-    options: { plugins: { legend: { position: 'bottom', labels: { font:{size:11}, padding:12 } },
-      tooltip: { callbacks: { label: function(c){ return ' '+c.label+': '+c.parsed.toFixed(1)+'h'; } } } } }
-  });
-}
-
-function _disegnaBareGiorni(id, perGiorno) {
-  var store = id.includes('admin') ? chartsAdmin : charts;
-  var ordine = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
-  var labels = ordine.filter(function(g){ return perGiorno[g]; });
-  var valori = labels.map(function(g){ return perGiorno[g]; });
-  if (store.giorni) store.giorni.destroy();
-  var ctx = document.getElementById(id).getContext('2d');
-  store.giorni = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: labels, datasets: [{ data: valori, backgroundColor: 'rgba(74,127,212,0.75)', borderRadius: 5, borderSkipped: false }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:11}} }, x: { ticks:{font:{size:11}} } } }
-  });
-}
-
-function _disegnaBarceMesi(id, mesi) {
-  var store = id.includes('admin') ? chartsAdmin : charts;
-  var labels = mesi.map(function(m){ return m.mese.substring(0,3); });
-  var valori = mesi.map(function(m){ return m.ore; });
-  if (store.mesi) store.mesi.destroy();
-  var ctx = document.getElementById(id).getContext('2d');
-  store.mesi = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: labels, datasets: [{ data: valori, backgroundColor: 'rgba(74,127,212,0.75)', borderRadius: 5, borderSkipped: false }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:11}} }, x: { ticks:{font:{size:11}} } } }
-  });
-}
-
-function _disegnaLineaCumulo(id, mesi) {
-  var store = id.includes('admin') ? chartsAdmin : charts;
-  var labels = [], cumulo = [], tot = 0;
-  mesi.forEach(function(m){ if(m.euro>0){ tot+=m.euro; labels.push(m.mese.substring(0,3)); cumulo.push(tot); } });
-  if (store.cumulo) store.cumulo.destroy();
-  var ctx = document.getElementById(id).getContext('2d');
-  store.cumulo = new Chart(ctx, {
-    type: 'line',
-    data: { labels: labels, datasets: [{ data: cumulo, borderColor:'rgba(74,127,212,1)', backgroundColor:'rgba(74,127,212,0.1)', tension:0.4, fill:true, pointRadius:4 }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:11}, callback:function(v){return '€'+v;}} }, x: { ticks:{font:{size:11}} } } }
-  });
-}
 var ANNI_DISPONIBILI = [2026, 2027, 2028];
 
 function popolaSelettoreAnno(idSel) {
@@ -1259,7 +1205,64 @@ function caricaStatistiche() {
   });
 }
 
-function disegnaDonutLuoghi(perLuogo) { _disegnaDonut('chart-luoghi', perLuogo); } {
+var chartsAdmin = {};
+
+function _disegnaDonut(id, perLuogo) {
+  var store = id.includes('admin') ? chartsAdmin : charts;
+  var labels = Object.keys(perLuogo);
+  var valori = labels.map(function(k){ return perLuogo[k]; });
+  var colori = labels.map(function(_,i){ return 'hsl('+(i*53%360)+',55%,55%)'; });
+  if (store.luoghi) store.luoghi.destroy();
+  var ctx = document.getElementById(id).getContext('2d');
+  store.luoghi = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels: labels, datasets: [{ data: valori, backgroundColor: colori, borderWidth: 0 }] },
+    options: { plugins: { legend: { position: 'bottom', labels: { font:{size:11}, padding:12 } },
+      tooltip: { callbacks: { label: function(c){ return ' '+c.label+': '+c.parsed.toFixed(1)+'h'; } } } } }
+  });
+}
+
+function _disegnaBareGiorni(id, perGiorno) {
+  var store = id.includes('admin') ? chartsAdmin : charts;
+  var ordine = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
+  var labels = ordine.filter(function(g){ return perGiorno[g]; });
+  var valori = labels.map(function(g){ return perGiorno[g]; });
+  if (store.giorni) store.giorni.destroy();
+  var ctx = document.getElementById(id).getContext('2d');
+  store.giorni = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: valori, backgroundColor: 'rgba(74,127,212,0.75)', borderRadius: 5, borderSkipped: false }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:11}} }, x: { ticks:{font:{size:11}} } } }
+  });
+}
+
+function _disegnaBarceMesi(id, mesi) {
+  var store = id.includes('admin') ? chartsAdmin : charts;
+  var labels = mesi.map(function(m){ return m.mese.substring(0,3); });
+  var valori = mesi.map(function(m){ return m.ore; });
+  if (store.mesi) store.mesi.destroy();
+  var ctx = document.getElementById(id).getContext('2d');
+  store.mesi = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: valori, backgroundColor: 'rgba(74,127,212,0.75)', borderRadius: 5, borderSkipped: false }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:11}} }, x: { ticks:{font:{size:11}} } } }
+  });
+}
+
+function _disegnaLineaCumulo(id, mesi) {
+  var store = id.includes('admin') ? chartsAdmin : charts;
+  var labels = [], cumulo = [], tot = 0;
+  mesi.forEach(function(m){ if(m.euro>0){ tot+=m.euro; labels.push(m.mese.substring(0,3)); cumulo.push(tot); } });
+  if (store.cumulo) store.cumulo.destroy();
+  var ctx = document.getElementById(id).getContext('2d');
+  store.cumulo = new Chart(ctx, {
+    type: 'line',
+    data: { labels: labels, datasets: [{ data: cumulo, borderColor:'rgba(74,127,212,1)', backgroundColor:'rgba(74,127,212,0.1)', tension:0.4, fill:true, pointRadius:4 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks:{font:{size:11}, callback:function(v){return '€'+v;}} }, x: { ticks:{font:{size:11}} } } }
+  });
+}
+
+function disegnaDonutLuoghi(perLuogo) {
   var labels = Object.keys(perLuogo);
   var valori = labels.map(function(k){ return perLuogo[k]; });
   var colori = labels.map(function(_,i){ return 'hsl('+(i*53%360)+',55%,55%)'; });
@@ -1277,7 +1280,7 @@ function disegnaDonutLuoghi(perLuogo) { _disegnaDonut('chart-luoghi', perLuogo);
   });
 }
 
-function disegnaBareGiorni(perGiorno) { _disegnaBareGiorni('chart-giorni', perGiorno); } {
+function disegnaBareGiorni(perGiorno) {
   var ordine = ['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
   var labels = ordine.filter(function(g){ return perGiorno[g]; });
   var valori = labels.map(function(g){ return perGiorno[g]; });
@@ -1293,7 +1296,7 @@ function disegnaBareGiorni(perGiorno) { _disegnaBareGiorni('chart-giorni', perGi
   });
 }
 
-function disegnaBarceMesi(mesi)       { _disegnaBarceMesi('chart-mesi', mesi); } {
+function disegnaBarceMesi(mesi) {
   var labels = mesi.map(function(m){ return m.mese.substring(0,3); });
   var valori = mesi.map(function(m){ return m.ore; });
   if (charts.mesi) charts.mesi.destroy();
@@ -1308,7 +1311,7 @@ function disegnaBarceMesi(mesi)       { _disegnaBarceMesi('chart-mesi', mesi); }
   });
 }
 
-function disegnaLineaCumulo(mesi)     { _disegnaLineaCumulo('chart-cumulo', mesi); }(mesi) {
+function disegnaLineaCumulo(mesi) {
   var labels = [], cumulo = [], tot = 0;
   mesi.forEach(function(m) {
     if (m.euro > 0) { tot += m.euro; labels.push(m.mese.substring(0,3)); cumulo.push(tot); }
@@ -1325,9 +1328,6 @@ function disegnaLineaCumulo(mesi)     { _disegnaLineaCumulo('chart-cumulo', mesi
   });
 }
 
-// ============================================================
-// EVENT LISTENERS
-// ============================================================
 function showGestioneMese(mese) {
   state.meseSel = mese;
   document.getElementById('modal-gestione-mese-title').textContent = 'Gestione — ' + mese;
@@ -1386,7 +1386,6 @@ function caricaStatisticheAdmin() {
   var mIdx = parseInt(document.getElementById('filtro-mese-stats-admin').value);
   var mese = MESI[mIdx];
   var GIORNI_SETTIMANA = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-
   apiCall('getVoci', { mese: mese, anno: state.anno }).then(function(r) {
     if (!r || !r.ok || !r.voci) return;
     var perLuogo = {}, perGiorno = {};
@@ -1402,7 +1401,6 @@ function caricaStatisticheAdmin() {
     _disegnaDonut('chart-luoghi-admin', perLuogo);
     _disegnaBareGiorni('chart-giorni-admin', perGiorno);
   });
-
   apiCall('getRiepilogoAnno', { anno: state.anno }).then(function(r) {
     if (!r || !r.ok) return;
     document.getElementById('titolo-chart-mesi-admin').textContent = 'Ore per mese — ' + state.anno;
@@ -1411,6 +1409,10 @@ function caricaStatisticheAdmin() {
     _disegnaLineaCumulo('chart-cumulo-admin', r.mesi);
   });
 }
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('v-data').value = todayISO();
   document.getElementById('sel-anno-utente').addEventListener('change', function(){ cambiaAnno(this.value); });
