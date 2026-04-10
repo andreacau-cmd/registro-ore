@@ -237,6 +237,22 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
+<!-- SBLOCCO BIOMETRICO -->
+<div class="screen" id="screen-sblocco">
+  <div class="login-wrap">
+    <div class="login-icon">🔐</div>
+    <h1 class="login-title">Bentornato</h1>
+    <p class="login-sub" id="sblocco-nome">—</p>
+    <button class="btn btn-primary" id="btn-sblocco-impronta" style="max-width:280px;margin-top:24px;">
+      <span>👆</span> Sblocca con impronta
+    </button>
+    <button class="topbar-action" id="btn-sblocco-google" style="margin-top:16px;font-size:13px;">
+      Usa Google invece
+    </button>
+    <div id="sblocco-error" class="login-error" style="margin-top:12px;"></div>
+  </div>
+</div>
+
 <!-- UTENTE -->
 <div class="screen" id="screen-utente">
   <div class="topbar">
@@ -672,7 +688,6 @@ function apiCall(action, payload) {
       resolve(demoData(action)); return;
     }
     var data = Object.assign({ action: action }, payload || {});
-    // Aggiunge il token ad ogni chiamata per autenticazione lato backend
     if (state.token) data.token = state.token;
     if (data.data) {
       var parts = String(data.data).split('-');
@@ -685,7 +700,27 @@ function apiCall(action, payload) {
     }).join('&');
     var url = currentUrl + '?' + params;
     fetch(url, { method:'GET', redirect:'follow' })
-    .then(function(r){ return r.json(); }).then(resolve)
+    .then(function(r){ return r.json(); })
+    .then(function(r) {
+      // Token scaduto — mostra sblocco biometrico
+      if (r && !r.ok && r.error && r.error.indexOf('Token') !== -1) {
+        mostraSchermaSblocco(function(nuovoToken) {
+          if (!nuovoToken) { resolve({ok:false}); return; }
+          state.token = nuovoToken;
+          localStorage.setItem('ro_token', nuovoToken);
+          // Riprova la chiamata con il nuovo token
+          data.token = nuovoToken;
+          var params2 = Object.keys(data).map(function(k){
+            return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
+          }).join('&');
+          fetch(currentUrl + '?' + params2, { method:'GET', redirect:'follow' })
+          .then(function(r2){ return r2.json(); }).then(resolve)
+          .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
+        });
+        return;
+      }
+      resolve(r);
+    })
     .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
   });
 }
@@ -704,6 +739,126 @@ function demoData(action) {
     totOre:6.5,totEuro:45.5,totGiorni:4,tariffa:7};
   if(action==='getGiornoMax') return {ok:true,data:'2026-03-03',ore:3,luoghi:['Via Cavour 248','Tiburtina']};
   return {ok:true};
+}
+
+// ============================================================
+// BIOMETRIA — WebAuthn + rinnovo token Google
+// ============================================================
+var _sbloccoCallback = null;
+
+function mostraSchermaSblocco(callback) {
+  _sbloccoCallback = callback;
+  var nome = state.nome || localStorage.getItem('ro_nome') || '';
+  document.getElementById('sblocco-nome').textContent = nome ? 'Ciao ' + nome : 'Sessione scaduta';
+  document.getElementById('sblocco-error').textContent = '';
+
+  // Controlla se biometria disponibile
+  if (window.PublicKeyCredential) {
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(ok) {
+      document.getElementById('btn-sblocco-impronta').style.display = ok ? 'flex' : 'none';
+    });
+  } else {
+    document.getElementById('btn-sblocco-impronta').style.display = 'none';
+  }
+  showScreen('sblocco');
+}
+
+async function sbloccoImpronta() {
+  var savedId = localStorage.getItem('biometria_id');
+  if (!savedId) {
+    // Prima volta — registra la biometria
+    var registrata = await registraBiometria();
+    if (!registrata) {
+      document.getElementById('sblocco-error').textContent = '⚠ Registrazione impronta fallita';
+      return;
+    }
+    savedId = localStorage.getItem('biometria_id');
+  }
+
+  try {
+    var rawId = Uint8Array.from(atob(savedId), function(c){ return c.charCodeAt(0); });
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        allowCredentials: [{ type: 'public-key', id: rawId }],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    // Impronta verificata — rinnova il token Google silenziosamente
+    rinnovaTokenGoogle();
+  } catch(e) {
+    document.getElementById('sblocco-error').textContent = '⚠ Impronta non riconosciuta';
+  }
+}
+
+async function registraBiometria() {
+  try {
+    var email = state.email || localStorage.getItem('ro_email') || 'utente';
+    var credential = await navigator.credentials.create({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: 'Registro Ore' },
+        user: {
+          id: new TextEncoder().encode(email),
+          name: email,
+          displayName: state.nome || email
+        },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          userVerification: 'required'
+        },
+        timeout: 60000
+      }
+    });
+    localStorage.setItem('biometria_id', btoa(
+      String.fromCharCode(...new Uint8Array(credential.rawId))
+    ));
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function rinnovaTokenGoogle() {
+  // Usa Google One Tap silenzioso per ottenere un nuovo token
+  if (typeof google === 'undefined') {
+    sbloccoFallback();
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: function(response) {
+      var nuovoToken = response.credential;
+      state.token = nuovoToken;
+      localStorage.setItem('ro_token', nuovoToken);
+      localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
+      // Torna alla schermata precedente
+      if (state.ruolo === 'admin') {
+        showScreen('admin');
+      } else {
+        showScreen('utente');
+      }
+      if (_sbloccoCallback) { _sbloccoCallback(nuovoToken); _sbloccoCallback = null; }
+      toast('✓ Sessione rinnovata');
+    },
+    auto_select: true  // tenta il login silenzioso
+  });
+  google.accounts.id.prompt(function(notification) {
+    if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
+      // One Tap non disponibile — chiedi login manuale
+      sbloccoFallback();
+    }
+  });
+}
+
+function sbloccoFallback() {
+  // Biometria non disponibile o One Tap fallito — login Google normale
+  if (_sbloccoCallback) { _sbloccoCallback(null); _sbloccoCallback = null; }
+  logout();
+  if (typeof google !== 'undefined') initGoogleSignIn();
+  else window.addEventListener('load', initGoogleSignIn);
 }
 
 // ============================================================
@@ -753,6 +908,21 @@ function handleGoogleLogin(response) {
       localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
 
       state.token = credential;
+
+      // Offri registrazione impronta se non ancora fatto e se disponibile
+      if (!localStorage.getItem('biometria_id') && window.PublicKeyCredential) {
+        PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(ok) {
+          if (ok) {
+            setTimeout(function() {
+              if (confirm('Vuoi usare l\'impronta digitale per sbloccare l\'app la prossima volta?')) {
+                registraBiometria().then(function(ok) {
+                  if (ok) toast('✓ Impronta registrata!');
+                });
+              }
+            }, 1000);
+          }
+        });
+      }
 
       if (ruolo === 'admin') {
         popolaSelettoreAnno('sel-anno-admin');
@@ -1423,6 +1593,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('btn-logout-utente').addEventListener('click', logout);
   document.getElementById('btn-logout-admin').addEventListener('click', logout);
+  document.getElementById('btn-sblocco-impronta').addEventListener('click', sbloccoImpronta);
+  document.getElementById('btn-sblocco-google').addEventListener('click', sbloccoFallback);
 
   document.getElementById('btn-nuova-voce-home').addEventListener('click', showNuovaVoce);
   document.getElementById('btn-vai-voci').addEventListener('click', function(){ switchTab('voci'); });
