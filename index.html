@@ -549,9 +549,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
 var APPS_SCRIPT_URLS = {
-  2026: "https://script.google.com/macros/s/AKfycbwTbeVu5J1RVn9P9qmz1CTg0Tq-S1lJ4qtY5J_YJLL7-poaGgyL9iOdLCfIJVd6tbaACw/exec",
-  2027: "https://script.google.com/macros/s/AKfycbwAzKAESFY9u4sn22ypAZ72xb_GZGwxsCTWYFysUEh5QxjGJBJ48W9-ERQtoYNnXlnp9Q/exec",
-  2028: "https://script.google.com/macros/s/AKfycbyEDDvUnwWfF6WH9xjlq_OAvu-zPYTjFV2RAGg2TWo0yuYeLTITgYFpP8VtAnmOBaVq/exec"
+  2026: "https://script.google.com/macros/s/AKfycbwO6H-CshSTeTwCNqqomp4RKOD4UuFOaD_BMe3M5rl4FANR43oxY1l5vxeB6CmoqFfgKQ/exec",
+  2027: "https://script.google.com/macros/s/AKfycbwe4EzlVl1FWa9mpx98GQKdbfFGDx4sXIvmHfIFVmdpNwii9OMcYezunWhMuZ2ADPJyBQ/exec",
+  2028: "https://script.google.com/macros/s/AKfycbydkl0tACQhmnesFKb2pXMdpNO_WBsEYg7yV7j_tIH9k4rjDhnYmU886Q-1qZa8b6i1/exec"
 };
 // Utenti autorizzati gestiti lato backend (Apps Script)
 
@@ -565,7 +565,8 @@ var state = {
   voci: [],
   luoghi: LUOGHI_DEFAULT.slice(),
   editingRow: null,
-  pinBuffer: ""
+  pinBuffer: "",
+  token: null
 };
 
 var charts = {};
@@ -671,6 +672,8 @@ function apiCall(action, payload) {
       resolve(demoData(action)); return;
     }
     var data = Object.assign({ action: action }, payload || {});
+    // Aggiunge il token ad ogni chiamata per autenticazione lato backend
+    if (state.token) data.token = state.token;
     if (data.data) {
       var parts = String(data.data).split('-');
       data.dataAnno   = parseInt(parts[0]);
@@ -746,7 +749,10 @@ function handleGoogleLogin(response) {
       localStorage.setItem('ro_email',    email);
       localStorage.setItem('ro_ruolo',    ruolo);
       localStorage.setItem('ro_nome',     nome);
+      localStorage.setItem('ro_token',    credential);
       localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      state.token = credential;
 
       if (ruolo === 'admin') {
         popolaSelettoreAnno('sel-anno-admin');
@@ -771,10 +777,11 @@ function handleGoogleLogin(response) {
 
 function logout() {
   google.accounts.id.disableAutoSelect();
-  state.ruolo = null; state.email = null;
+  state.ruolo = null; state.email = null; state.token = null;
   localStorage.removeItem('ro_email');
   localStorage.removeItem('ro_ruolo');
   localStorage.removeItem('ro_nome');
+  localStorage.removeItem('ro_token');
   localStorage.removeItem('ro_scadenza');
   showScreen('login');
 }
@@ -1377,6 +1384,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var savedEmail    = localStorage.getItem('ro_email');
   var savedRuolo    = localStorage.getItem('ro_ruolo');
   var savedNome     = localStorage.getItem('ro_nome');
+  var savedToken    = localStorage.getItem('ro_token');
   var savedScadenza = localStorage.getItem('ro_scadenza');
 
   if (savedEmail && savedRuolo
@@ -1384,6 +1392,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.email = savedEmail;
     state.ruolo = savedRuolo;
     state.nome  = savedNome;
+    state.token = savedToken;
     if (savedRuolo === 'admin') {
       popolaSelettoreAnno('sel-anno-admin');
       showScreen('admin');
