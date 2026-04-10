@@ -1077,9 +1077,15 @@ function eliminaVoceCorrente() {
 }
 
 function annullaUltimaVoce() {
-  if(!state.voci.length) { toast('Nessuna voce da annullare'); return; }
-  var ultima=state.voci[state.voci.length-1];
-  if(!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?')) return;
+  // Filtra solo le voci del mese corrente e prende quella con data più recente
+  var vociMese = state.voci.filter(function(v){
+    return v.meseFoglio === getMeseNome();
+  });
+  if (!vociMese.length) { toast('Nessuna voce da annullare'); return; }
+  var ultima = vociMese.reduce(function(max, v){
+    return v.data > max.data ? v : max;
+  });
+  if (!confirm('Annullare la voce del '+formatDate(ultima.data)+' — '+ultima.luogo+'?')) return;
   apiCall('eliminaVoce',{mese:getMeseNome(),anno:state.anno,riga:ultima.riga}).then(function(r){
     if(r&&r.ok) { toast('↩ Ultima voce annullata'); caricaHomeUtente(); }
     else toast('⚠ Errore');
