@@ -549,16 +549,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // ============================================================
 var GOOGLE_CLIENT_ID = "447117247795-qpi0o4fte930lbtk8jncvro31t3b25bm.apps.googleusercontent.com";
 var APPS_SCRIPT_URLS = {
-  2026: "https://script.google.com/macros/s/AKfycbzoY8RAcwuSIpJgFu50Po7VUS1XMDA1EljZFRv4kyajBEXH8k3ILZsHMmle_aGSRP_sGw/exec",
-  2027: "https://script.google.com/macros/s/AKfycbxKlRJeoVXLbVtC8dh7sRJ6LLk-ELyLG8qLTjNViBPW_j_76hZEYw2GmoLEeyWSQZWrxA/exec",
-  2028: "https://script.google.com/macros/s/AKfycbzQGXWmi2aOACmLBdpl2DXHdywQM-1lqkV0yoEn2kHj46GWXI1sp8tT0LFekbXKhhrv/exec"
+  2026: "https://script.google.com/macros/s/AKfycbwTbeVu5J1RVn9P9qmz1CTg0Tq-S1lJ4qtY5J_YJLL7-poaGgyL9iOdLCfIJVd6tbaACw/exec",
+  2027: "https://script.google.com/macros/s/AKfycbwAzKAESFY9u4sn22ypAZ72xb_GZGwxsCTWYFysUEh5QxjGJBJ48W9-ERQtoYNnXlnp9Q/exec",
+  2028: "https://script.google.com/macros/s/AKfycbyEDDvUnwWfF6WH9xjlq_OAvu-zPYTjFV2RAGg2TWo0yuYeLTITgYFpP8VtAnmOBaVq/exec"
 };
-var UTENTI_AUTORIZZATI = {
-  "andrea.cau.import@gmail.com":  "admin",
-  "blackjad555@gmail.com": "utente",
-  "INCOLLA_EMAIL_UTENTE2@gmail.com": "utente",
-  "INCOLLA_EMAIL_UTENTE3@gmail.com": "utente"
-};
+// Utenti autorizzati gestiti lato backend (Apps Script)
 
 var LUOGHI_DEFAULT = ["Subburra","Via Cavour 248","Tiburtina","San Paolo OIS","Via G. Lanza 146","Via della Madonnina"];
 var MESI = ["GENNAIO","FEBBRAIO","MARZO","APRILE","MAGGIO","GIUGNO","LUGLIO","AGOSTO","SETTEMBRE","OTTOBRE","NOVEMBRE","DICEMBRE"];
@@ -723,39 +718,55 @@ function initGoogleSignIn() {
 }
 
 function handleGoogleLogin(response) {
-  var payload = JSON.parse(atob(response.credential.split('.')[1]));
+  var credential = response.credential;
+  var payload = JSON.parse(atob(credential.split('.')[1]));
   var email = payload.email;
-  var nome = payload.name;
-  var ruolo = UTENTI_AUTORIZZATI[email];
+  var nome  = payload.name;
 
-  if (!ruolo) {
-    document.getElementById('login-error').textContent = '⚠ Account non autorizzato: ' + email;
-    return;
-  }
+  // Mostra feedback visivo mentre verifica
+  document.getElementById('login-error').textContent = '';
+  var btn = document.getElementById('google-signin-btn');
+  btn.style.opacity = '0.5';
 
-  state.ruolo = ruolo;
-  state.email = email;
-  state.nome  = nome;
+  // Verifica lato backend — usa sempre l'URL 2026 per il login
+  var url = APPS_SCRIPT_URLS[new Date().getFullYear()] || APPS_SCRIPT_URLS[2026];
+  fetch(url + '?action=verificaUtente&email=' + encodeURIComponent(email))
+    .then(function(r){ return r.json(); })
+    .then(function(r) {
+      btn.style.opacity = '1';
+      if (!r || !r.ok || !r.ruolo) {
+        document.getElementById('login-error').textContent = '⚠ Account non autorizzato: ' + email;
+        return;
+      }
+      var ruolo = r.ruolo;
+      state.ruolo = ruolo;
+      state.email = email;
+      state.nome  = nome;
 
-  localStorage.setItem('ro_email',    email);
-  localStorage.setItem('ro_ruolo',    ruolo);
-  localStorage.setItem('ro_nome',     nome);
-  localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
+      localStorage.setItem('ro_email',    email);
+      localStorage.setItem('ro_ruolo',    ruolo);
+      localStorage.setItem('ro_nome',     nome);
+      localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  if (ruolo === 'admin') {
-    popolaSelettoreAnno('sel-anno-admin');
-    showScreen('admin');
-    caricaAdminData();
-  } else {
-    showScreen('utente');
-    document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
-    popolaSelettoreAnno('sel-anno-utente');
-    caricaHomeUtente();
-    popolaFiltroMesi();
-    popolaFiltroMesiRiepilogo();
-    popolaFiltroMesiStats();
-    caricaLuoghiDaFoglio();
-  }
+      if (ruolo === 'admin') {
+        popolaSelettoreAnno('sel-anno-admin');
+        showScreen('admin');
+        caricaAdminData();
+      } else {
+        showScreen('utente');
+        document.getElementById('u-mese-label').textContent = getMeseNome()+' '+state.anno;
+        popolaSelettoreAnno('sel-anno-utente');
+        caricaHomeUtente();
+        popolaFiltroMesi();
+        popolaFiltroMesiRiepilogo();
+        popolaFiltroMesiStats();
+        caricaLuoghiDaFoglio();
+      }
+    })
+    .catch(function() {
+      btn.style.opacity = '1';
+      document.getElementById('login-error').textContent = '⚠ Errore di connessione al server';
+    });
 }
 
 function logout() {
@@ -786,12 +797,25 @@ function aggiornaDotsPin() {
   for(var i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<state.pinBuffer.length);
 }
 function verificaPin() {
-  if(state.pinBuffer===ADMIN_PIN) {
-    closeModal('pin'); state.ruolo='admin'; showScreen('admin'); caricaAdminData();
-  } else {
-    document.getElementById('pin-error').textContent='PIN non corretto';
-    state.pinBuffer=''; aggiornaDotsPin();
-  }
+  var pin = state.pinBuffer;
+  var url = APPS_SCRIPT_URLS[new Date().getFullYear()] || APPS_SCRIPT_URLS[2026];
+  fetch(url + '?action=verificaPin&pin=' + encodeURIComponent(pin))
+    .then(function(r){ return r.json(); })
+    .then(function(r) {
+      if (r && r.ok) {
+        closeModal('pin');
+        state.ruolo = 'admin';
+        showScreen('admin');
+        caricaAdminData();
+      } else {
+        document.getElementById('pin-error').textContent = 'PIN non corretto';
+        state.pinBuffer = ''; aggiornaDotsPin();
+      }
+    })
+    .catch(function() {
+      document.getElementById('pin-error').textContent = 'Errore di connessione';
+      state.pinBuffer = ''; aggiornaDotsPin();
+    });
 }
 
 function caricaHomeUtente() {
@@ -1355,7 +1379,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var savedNome     = localStorage.getItem('ro_nome');
   var savedScadenza = localStorage.getItem('ro_scadenza');
 
-  if (savedEmail && savedRuolo && UTENTI_AUTORIZZATI[savedEmail]
+  if (savedEmail && savedRuolo
       && savedScadenza && Date.now() < parseInt(savedScadenza)) {
     state.email = savedEmail;
     state.ruolo = savedRuolo;
