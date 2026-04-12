@@ -752,21 +752,26 @@ function apiCall(action, payload) {
     fetch(url, { method:'GET', redirect:'follow' })
     .then(function(r){ return r.json(); })
     .then(function(r) {
-      // Token scaduto — mostra sblocco biometrico
+      // Solo se il backend rifiuta per autenticazione (non per scadenza)
+      // mostriamo la schermata di sblocco biometrico
       if (r && !r.ok && r.error && r.error.indexOf('Token') !== -1) {
-        mostraSchermaSblocco(function(nuovoToken) {
-          if (!nuovoToken) { resolve({ok:false}); return; }
-          state.token = nuovoToken;
-          localStorage.setItem('ro_token', nuovoToken);
-          // Riprova la chiamata con il nuovo token
-          data.token = nuovoToken;
-          var params2 = Object.keys(data).map(function(k){
-            return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
-          }).join('&');
-          fetch(currentUrl + '?' + params2, { method:'GET', redirect:'follow' })
-          .then(function(r2){ return r2.json(); }).then(resolve)
-          .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
-        });
+        // Se c'è biometria registrata, mostra sblocco — altrimenti vai al login
+        if (localStorage.getItem('biometria_id')) {
+          mostraSchermaSblocco(function(token) {
+            if (!token) { resolve({ok:false}); return; }
+            // Riprova la chiamata — il token è lo stesso ma la sessione è sbloccata
+            data.token = token;
+            var params2 = Object.keys(data).map(function(k){
+              return encodeURIComponent(k) + '=' + encodeURIComponent(typeof data[k]==='object' ? JSON.stringify(data[k]) : data[k]);
+            }).join('&');
+            fetch(currentUrl + '?' + params2, { method:'GET', redirect:'follow' })
+            .then(function(r2){ return r2.json(); }).then(resolve)
+            .catch(function(){ toast('⚠ Errore connessione'); resolve({ok:false}); });
+          });
+        } else {
+          sbloccoFallback();
+          resolve({ok:false});
+        }
         return;
       }
       resolve(r);
@@ -792,112 +797,32 @@ function demoData(action) {
 }
 
 // ============================================================
-// BIOMETRIA + GOOGLE ONE TAP — flusso parallelo
+// BIOMETRIA — sblocco locale senza Google
 //
-// Logica:
-//  1. App avvia → controlla sessione salvata
-//  2. Sessione trovata ma token scaduto → mostraSchermaSblocco()
-//  3. mostraSchermaSblocco() fa partire IN PARALLELO:
-//       a) One Tap silenzioso (auto_select: true) — rinnova il token JWT
-//       b) WebAuthn biometrico — verifica l'identità locale
-//  4. Biometria OK + token già fresco   → entra direttamente
-//     Biometria OK + token ancora vecchio → entra con il vecchio token
-//                                           (One Tap aggiornerà il token in bg)
-//     One Tap risponde prima              → token fresco, biometria completa il lock
-//     Entrambi falliscono                 → fallback al login Google completo
+// Logica Opzione A:
+//  1. Token scaduto → mostraSchermaSblocco()
+//  2. Utente tocca impronta → WebAuthn verifica localmente
+//  3. OK → entra direttamente con il token che ha (anche se scaduto)
+//  4. Il backend NON verifica più la scadenza del token (solo l'autenticità)
+//  5. Fallback: "Usa Google invece" → logout + login normale
 // ============================================================
 
-var _sbloccoCallback  = null;   // callback(nuovoToken|null) chiamata quando lo sblocco è completo
-var _oneTapRiuscito   = false;  // One Tap ha già consegnato un token fresco?
-var _biometriaRiuscita = false; // WebAuthn ha già risposto positivamente?
-var _sbloccoCompletato = false; // evita doppie chiamate alla callback
-
-// ---- helpers interni ----
-
-function _completaSblocco(nuovoToken) {
-  if (_sbloccoCompletato) return;
-  _sbloccoCompletato = true;
-  if (nuovoToken) {
-    state.token = nuovoToken;
-    localStorage.setItem('ro_token', nuovoToken);
-    localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
-  }
-  // Naviga alla schermata giusta
-  if (state.ruolo === 'admin') {
-    showScreen('admin');
-  } else {
-    showScreen('utente');
-  }
-  if (_sbloccoCallback) { _sbloccoCallback(nuovoToken || state.token); _sbloccoCallback = null; }
-}
-
-function _aggiornaStatoSblocco() {
-  // Chiamata ogni volta che uno dei due rami completa.
-  // Entra solo se la biometria è già passata (il token si aggiorna in bg se arriva dopo).
-  if (_biometriaRiuscita) {
-    var tokenDaUsare = _oneTapRiuscito
-      ? localStorage.getItem('ro_token')   // One Tap ha già aggiornato il token
-      : state.token;                        // usa il vecchio token — basta aprire l'app
-    _completaSblocco(tokenDaUsare);
-  }
-}
-
-// ---- One Tap silenzioso ----
-// Viene avviato immediatamente all'apertura della schermata di sblocco.
-// Non blocca la UI: se risponde → aggiorna il token; se non risponde → nessun danno.
-
-function _avviaOneTapSilenzioso() {
-  if (typeof google === 'undefined') return;
-  try {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      auto_select: true,           // modalità silenziosa — non mostra popup visibile
-      cancel_on_tap_outside: false,
-      callback: function(response) {
-        if (!response || !response.credential) return;
-        _oneTapRiuscito = true;
-        // Salva subito il token fresco
-        localStorage.setItem('ro_token', response.credential);
-        localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
-        // Se la biometria aveva già risposto → possiamo completare lo sblocco
-        _aggiornaStatoSblocco();
-      }
-    });
-    // prompt() senza div target = modale nativa di Google (silenziosa se auto_select attivo)
-    google.accounts.id.prompt(function(notification) {
-      // isSkippedMoment / isDismissedMoment significa che Google non ha potuto fare
-      // il login silenzioso (es. cookie di terze parti bloccati). Non è un errore fatale:
-      // la biometria completerà lo sblocco con il vecchio token.
-      // Non chiamiamo sbloccoFallback() qui — aspettiamo che la biometria risponda.
-    });
-  } catch(e) {
-    // Libreria Google non ancora pronta — ignora, la biometria basta
-  }
-}
-
-// ---- WebAuthn ----
+var _sbloccoCallback = null;
 
 function mostraSchermaSblocco(callback) {
-  _sbloccoCallback   = callback;
-  _oneTapRiuscito    = false;
-  _biometriaRiuscita = false;
-  _sbloccoCompletato = false;
+  _sbloccoCallback = callback;
 
   var nome = state.nome || localStorage.getItem('ro_nome') || '';
   document.getElementById('sblocco-nome').textContent = nome ? 'Ciao ' + nome + ' 👋' : 'Sessione scaduta';
   document.getElementById('sblocco-error').textContent = '';
 
-  // Mostra/nascondi pulsante impronta in base alla disponibilità hardware
   if (window.PublicKeyCredential) {
     PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(ok) {
       document.getElementById('btn-sblocco-impronta').style.display = ok ? 'flex' : 'none';
-      // Se biometria disponibile, avvia One Tap in parallelo subito
-      if (ok) _avviaOneTapSilenzioso();
     });
   } else {
     document.getElementById('btn-sblocco-impronta').style.display = 'none';
   }
-
   showScreen('sblocco');
 }
 
@@ -906,7 +831,6 @@ async function sbloccoImpronta() {
   var btn = document.getElementById('btn-sblocco-impronta');
 
   if (!savedId) {
-    // Prima volta — registra la credential WebAuthn
     btn.textContent = '⏳ Registrazione impronta…';
     btn.disabled = true;
     var registrata = await registraBiometria();
@@ -933,21 +857,21 @@ async function sbloccoImpronta() {
       }
     });
 
-    // ✅ Biometria verificata
-    _biometriaRiuscita = true;
+    // ✅ Impronta verificata — sblocca con il token esistente
     btn.innerHTML = '<span>✓</span> Identità verificata';
 
-    // Se One Tap ha già rinnovato il token → _aggiornaStatoSblocco() chiude tutto
-    // Se One Tap non ha ancora risposto → entriamo comunque con il token che abbiamo
-    // (verrà aggiornato in bg non appena One Tap risponde, se risponde)
-    _aggiornaStatoSblocco();
+    // Rinnova la scadenza sessione
+    localStorage.setItem('ro_scadenza', Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    // Sicurezza: se dopo 2s One Tap non ha risposto, completiamo lo sblocco comunque
-    setTimeout(function() {
-      if (!_sbloccoCompletato && _biometriaRiuscita) {
-        _completaSblocco(state.token);
-      }
-    }, 2000);
+    // Torna alla schermata giusta
+    if (state.ruolo === 'admin') {
+      showScreen('admin');
+      caricaAdminData();
+    } else {
+      showScreen('utente');
+    }
+
+    if (_sbloccoCallback) { _sbloccoCallback(state.token); _sbloccoCallback = null; }
 
   } catch(e) {
     btn.innerHTML = '<span>👆</span> Sblocca con impronta';
@@ -987,8 +911,6 @@ async function registraBiometria() {
 }
 
 function sbloccoFallback() {
-  // Usato solo dal pulsante "Usa Google invece" — login manuale completo
-  _sbloccoCompletato = true; // blocca eventuali callback pendenti
   if (_sbloccoCallback) { _sbloccoCallback(null); _sbloccoCallback = null; }
   logout();
   if (typeof google !== 'undefined') initGoogleSignIn();
