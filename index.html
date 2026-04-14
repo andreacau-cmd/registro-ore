@@ -229,6 +229,22 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .giorno-max-luoghi{font-size:13px;color:var(--text2);}
 .stat-mb{margin-bottom:12px;}
 .btn-danger{background:var(--danger);color:#fff;padding:15px 20px;font-size:16px;}
+
+/* VOICE INPUT */
+.voice-bar{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;cursor:pointer;transition:border-color .2s;}
+.voice-bar:active{opacity:.85;}
+.voice-bar.listening{border-color:var(--accent);background:var(--pill-bg);}
+.voice-bar.parsing{border-color:#888;background:var(--bg2);cursor:default;}
+.voice-bar.done{border-color:#2e7d32;background:#e8f5e9;}
+@media(prefers-color-scheme:dark){.voice-bar.done{background:#1b2e1c;border-color:#4caf50;}}
+.voice-mic{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;}
+.voice-bar.listening .voice-mic{background:#c0392b;animation:micPulse .8s ease-in-out infinite;}
+.voice-bar.parsing .voice-mic{background:#888;}
+.voice-bar.done .voice-mic{background:#2e7d32;}
+@keyframes micPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+.voice-text{flex:1;font-size:13px;color:var(--text2);}
+.voice-text strong{color:var(--text);font-weight:500;}
+.voice-hint{font-size:11px;color:var(--text2);margin-top:2px;}
 .mese-stato{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-left:8px;}
 .mese-stato.aperto{background:rgba(74,127,212,0.15);color:var(--accent);}
 .mese-stato.chiuso{background:rgba(139,26,26,0.12);color:var(--danger);}
@@ -491,6 +507,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="modal-title" id="modal-voce-title">Nuova voce</div>
       <button id="btn-elimina-voce" class="btn-danger-icon" style="display:none;">🗑️</button>
     </div>
+    <!-- VOICE BAR -->
+    <div class="voice-bar" id="voice-bar" onclick="voiceToggle()">
+      <div class="voice-mic">
+        <svg id="voice-icon-mic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <svg id="voice-icon-stop" width="14" height="14" viewBox="0 0 24 24" fill="white" style="display:none;"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+      </div>
+      <div class="voice-text">
+        <div id="voice-label">Inserisci con la voce</div>
+        <div class="voice-hint" id="voice-hint">es. "ieri 3 ore Via Cavour"</div>
+      </div>
+    </div>
+
     <div class="field"><label>Data</label><input type="date" id="v-data"></div>
     <div class="field">
       <label>Ore lavorate</label>
@@ -1186,6 +1214,7 @@ function showNuovaVoce() {
   document.getElementById('v-luogo').value='';
   document.getElementById('v-note').value='';
   document.querySelectorAll('#luoghi-tags .tag').forEach(function(t){ t.classList.remove('selected'); });
+  voiceReset();
   openModal('voce');
 }
 
@@ -1215,6 +1244,229 @@ function editVoce(riga, meseFoglio) {
   document.getElementById('v-luogo').value=v.luogo;
   document.getElementById('v-note').value=v.note||'';
   openModal('voce');
+}
+
+// ============================================================
+// VOICE INPUT — Web Speech API + parser JS (zero costi)
+// ============================================================
+var _voiceRec = null;
+var _voiceAttivo = false;
+
+function voiceToggle() {
+  if (_voiceAttivo) {
+    voiceStop();
+  } else {
+    voiceStart();
+  }
+}
+
+function voiceStart() {
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    toast('⚠ Riconoscimento vocale non supportato su questo browser');
+    return;
+  }
+  _voiceRec = new SpeechRecognition();
+  _voiceRec.lang = 'it-IT';
+  _voiceRec.interimResults = true;
+  _voiceRec.maxAlternatives = 1;
+  _voiceAttivo = true;
+  voiceSetStato('listening', 'In ascolto…', 'parla ora');
+
+  _voiceRec.onresult = function(e) {
+    var trascritto = '';
+    for (var i = e.resultIndex; i < e.results.length; i++) {
+      trascritto += e.results[i][0].transcript;
+    }
+    document.getElementById('voice-hint').textContent = '"' + trascritto + '"';
+  };
+
+  _voiceRec.onend = function() {
+    _voiceAttivo = false;
+    var testo = document.getElementById('voice-hint').textContent.replace(/^"|"$/g, '');
+    if (testo && testo !== 'parla ora') {
+      voiceSetStato('parsing', 'Elaborazione…', '"' + testo + '"');
+      setTimeout(function() { voiceParsaETesto(testo); }, 150);
+    } else {
+      voiceReset();
+    }
+  };
+
+  _voiceRec.onerror = function(e) {
+    _voiceAttivo = false;
+    if (e.error === 'not-allowed') toast('⚠ Microfono non autorizzato — controlla i permessi');
+    else if (e.error !== 'no-speech') toast('⚠ Errore microfono: ' + e.error);
+    voiceReset();
+  };
+
+  _voiceRec.start();
+}
+
+function voiceStop() {
+  if (_voiceRec) { try { _voiceRec.stop(); } catch(e) {} }
+  _voiceAttivo = false;
+}
+
+function voiceSetStato(stato, label, hint) {
+  var bar = document.getElementById('voice-bar');
+  bar.className = 'voice-bar ' + stato;
+  document.getElementById('voice-label').textContent = label;
+  document.getElementById('voice-hint').textContent = hint;
+  document.getElementById('voice-icon-mic').style.display = stato === 'listening' ? 'none' : '';
+  document.getElementById('voice-icon-stop').style.display = stato === 'listening' ? '' : 'none';
+  bar.onclick = stato === 'parsing' ? null : function(){ voiceToggle(); };
+}
+
+function voiceReset() {
+  voiceSetStato('', 'Inserisci con la voce', 'es. "ieri 3 ore Via Cavour"');
+  document.getElementById('voice-bar').className = 'voice-bar';
+}
+
+// ---- Parser testuale ----
+// Riconosce: data (oggi/ieri/lunedì/dd/mm...), ore (numero + "ore"/"h"/mezzo),
+// luogo (resto della frase), note (dopo virgola o parole chiave come "con")
+
+function voiceParsaETesto(testo) {
+  var risultato = voiceParse(testo.toLowerCase().trim());
+
+  var compilati = [];
+
+  if (risultato.data) {
+    document.getElementById('v-data').value = risultato.data;
+    compilati.push('data');
+  }
+  if (risultato.ore) {
+    document.getElementById('v-ore').value = risultato.ore;
+    compilati.push('ore');
+  }
+  if (risultato.luogo) {
+    document.getElementById('v-luogo').value = risultato.luogo;
+    // Aggiorna visivamente i tag luogo
+    document.querySelectorAll('#luoghi-tags .tag').forEach(function(t) {
+      t.classList.toggle('selected', t.dataset.luogo.toLowerCase() === risultato.luogo.toLowerCase());
+    });
+    compilati.push('luogo');
+  }
+  if (risultato.note) {
+    document.getElementById('v-note').value = risultato.note;
+  }
+
+  if (compilati.length > 0) {
+    voiceSetStato('done', '✓ ' + compilati.join(', ') + ' compilati', '"' + testo + '"');
+    setTimeout(voiceReset, 3000);
+  } else {
+    toast('⚠ Non ho capito — riprova');
+    voiceReset();
+  }
+}
+
+function voiceParse(t) {
+  var oggi = new Date();
+  var risultato = {};
+
+  // ---- DATA ----
+  // "oggi"
+  if (/\boggi\b/.test(t)) {
+    risultato.data = dateToISO(oggi);
+  }
+  // "ieri"
+  else if (/\bieri\b/.test(t)) {
+    var ieri = new Date(oggi); ieri.setDate(oggi.getDate() - 1);
+    risultato.data = dateToISO(ieri);
+  }
+  // "l'altro ieri" / "altroieri"
+  else if (/\balt[ro ]*ieri\b/.test(t)) {
+    var aieri = new Date(oggi); aieri.setDate(oggi.getDate() - 2);
+    risultato.data = dateToISO(aieri);
+  }
+  // giorno settimana: "lunedì", "martedì scorso", ecc.
+  else {
+    var GIORNI = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+    for (var gi = 0; gi < GIORNI.length; gi++) {
+      if (t.indexOf(GIORNI[gi]) !== -1) {
+        var target = gi;
+        var curr = oggi.getDay();
+        var diff = (curr - target + 7) % 7;
+        if (diff === 0) diff = 7; // "lunedì" = scorso lunedì, non oggi
+        var gx = new Date(oggi); gx.setDate(oggi.getDate() - diff);
+        risultato.data = dateToISO(gx);
+        t = t.replace(GIORNI[gi], '').replace('scorso','').replace('scorsa','');
+        break;
+      }
+    }
+    // data esplicita dd/mm o dd-mm
+    if (!risultato.data) {
+      var mData = t.match(/(\d{1,2})[\/-](\d{1,2})/);
+      if (mData) {
+        var anno = oggi.getFullYear();
+        var mm = mData[2].padStart(2,'0');
+        var dd = mData[1].padStart(2,'0');
+        risultato.data = anno + '-' + mm + '-' + dd;
+        t = t.replace(mData[0], '');
+      }
+    }
+  }
+
+  // Rimuovi parola chiave data dal testo per non confondere il parser ore/luogo
+  t = t.replace(/\b(oggi|ieri|stamattina|stamani|l[' ]?altro ieri|altroieri)\b/g, '').trim();
+
+  // ---- ORE ----
+  // "3 ore e mezza" / "3 e mezza" / "tre ore e mezzo"
+  var mOreEMezza = t.match(/(\d+(?:[.,]\d+)?)\s*(?:ore?)?\s+e\s+mez(?:zo|za)/);
+  if (mOreEMezza) {
+    risultato.ore = parseFloat(mOreEMezza[1].replace(',','.')) + 0.5;
+    t = t.replace(mOreEMezza[0], '');
+  } else {
+    // "3.5 ore" / "3,5 ore" / "3h" / "3 ore"
+    var mOre = t.match(/(\d+(?:[.,]\d+)?)\s*(?:ore?|h\b)/);
+    if (mOre) {
+      risultato.ore = parseFloat(mOre[1].replace(',','.'));
+      t = t.replace(mOre[0], '');
+    } else {
+      // numero isolato tipo "3" rimasto dopo aver tolto il resto
+      var mNum = t.match(/^\s*(\d+(?:[.,]\d+)?)\s/);
+      if (mNum) {
+        risultato.ore = parseFloat(mNum[1].replace(',','.'));
+        t = t.replace(mNum[0], '');
+      }
+    }
+  }
+
+  // Clamp ore sensate
+  if (risultato.ore !== undefined) {
+    risultato.ore = Math.max(0.5, Math.min(24, Math.round(risultato.ore * 2) / 2));
+  }
+
+  // ---- NOTE (prima del luogo — estrai "con X" o testo dopo virgola) ----
+  var mNote = t.match(/,\s*(.+)$/);
+  if (mNote) {
+    risultato.note = mNote[1].trim();
+    t = t.replace(mNote[0], '');
+  } else {
+    var mCon = t.match(/\bcon\s+(.+)$/);
+    if (mCon) {
+      risultato.note = 'con ' + mCon[1].trim();
+      t = t.replace(mCon[0], '');
+    }
+  }
+
+  // ---- LUOGO (quello che rimane) ----
+  // Rimuovi stopword residue
+  t = t.replace(/\b(al|alla|a|in|nel|nella|presso|dal|dalla|il|lo|la|gli|le|del|dello|della|dei|degli|delle|un|una|per|ore?|h|e|mezzo|mezza|scorso|scorsa|stamattina|stamani|mattina|pomeriggio|sera)\b/g, ' ');
+  t = t.replace(/\s{2,}/g, ' ').trim();
+
+  if (t.length > 1) {
+    // Capitalizza ogni parola
+    risultato.luogo = t.replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  }
+
+  return risultato;
+}
+
+function dateToISO(d) {
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
 }
 
 function adjustOre(delta) {
@@ -1698,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('btn-ore-meno').addEventListener('click', function(){ adjustOre(-0.5); });
   document.getElementById('btn-ore-piu').addEventListener('click',  function(){ adjustOre(0.5); });
-  document.getElementById('btn-annulla-voce').addEventListener('click', function(){ closeModal('voce'); });
+  document.getElementById('btn-annulla-voce').addEventListener('click', function(){ voiceStop(); voiceReset(); closeModal('voce'); });
   document.getElementById('btn-elimina-voce').addEventListener('click', eliminaVoceCorrente);
   document.getElementById('btn-salva-voce').addEventListener('click', salvaVoce);
 
