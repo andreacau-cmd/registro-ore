@@ -1411,14 +1411,30 @@ function voiceParse(t) {
   t = t.replace(/\b(oggi|ieri|stamattina|stamani|l[' ]?altro ieri|altroieri)\b/g, '').trim();
 
   // ---- ORE ----
-  // "3 ore e mezza" / "3 e mezza" / "tre ore e mezzo"
-  var mOreEMezza = t.match(/(\d+(?:[.,]\d+)?)\s*(?:ore?)?\s+e\s+mez(?:zo|za)/);
+  // Normalizza numeri scritti in lettere (output tipico dello speech-to-text)
+  // "un/uno/una" solo se seguiti da ora/ore/h (evita di rimpiazzare articoli nel luogo)
+  t = t.replace(/[''`]/g, ' '); // normalizza apostrofi (un'ora -> un ora)
+  t = t.replace(/\bun[oa]?\s+or[ae]\b/g, '1 ora');
+  t = t.replace(/\bun[oa]?\s+h\b/g, '1h');
+  // altri numerali: sostituiti sempre (due/tre/... non sono articoli comuni)
+  var NUMERI_PAROLE = {
+    'due':2,'tre':3,'quattro':4,'cinque':5,'sei':6,
+    'sette':7,'otto':8,'nove':9,'dieci':10,
+    'undici':11,'dodici':12
+  };
+  Object.keys(NUMERI_PAROLE).forEach(function(parola) {
+    var re = new RegExp('\\\\b' + parola + '\\\\b', 'g');
+    t = t.replace(re, String(NUMERI_PAROLE[parola]));
+  });
+
+  // "3 ore e mezza" / "3 e mezza" / "3 ore e mezzo"
+  var mOreEMezza = t.match(/(\d+(?:[.,]\d+)?)\s*(?:or[ae])?\s+e\s+mez(?:zo|za)/);
   if (mOreEMezza) {
     risultato.ore = parseFloat(mOreEMezza[1].replace(',','.')) + 0.5;
     t = t.replace(mOreEMezza[0], '');
   } else {
-    // "3.5 ore" / "3,5 ore" / "3h" / "3 ore"
-    var mOre = t.match(/(\d+(?:[.,]\d+)?)\s*(?:ore?|h\b)/);
+    // "3.5 ore" / "3,5 ore" / "3h" / "3 ore" / "3 ora"
+    var mOre = t.match(/(\d+(?:[.,]\d+)?)\s*(?:or[ae]|h\b)/);
     if (mOre) {
       risultato.ore = parseFloat(mOre[1].replace(',','.'));
       t = t.replace(mOre[0], '');
