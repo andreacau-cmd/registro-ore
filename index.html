@@ -1379,6 +1379,26 @@ function voiceParse(t) {
     var aieri = new Date(oggi); aieri.setDate(oggi.getDate() - 2);
     risultato.data = dateToISO(aieri);
   }
+  // data esplicita con nome mese: "1 aprile", "primo aprile 2026", "1 aprile 2026"
+  else if ((function(){
+    var MESI_IT = ['gennaio','febbraio','marzo','aprile','maggio','giugno',
+                   'luglio','agosto','settembre','ottobre','novembre','dicembre'];
+    // "primo" come alternativa a "1"
+    var tNorm = t.replace(/\bprimo\b/,'1');
+    var mMese = tNorm.match(/(\d{1,2})\s+(\w+)(?:\s+(\d{4}))?/);
+    if (!mMese) return false;
+    var idxMese = MESI_IT.indexOf(mMese[2].toLowerCase());
+    if (idxMese === -1) return false;
+    var gg = parseInt(mMese[1]);
+    var aa = mMese[3] ? parseInt(mMese[3]) : oggi.getFullYear();
+    if (gg < 1 || gg > 31) return false;
+    risultato.data = aa + '-' + String(idxMese+1).padStart(2,'0') + '-' + String(gg).padStart(2,'0');
+    // rimuovi dal testo la parte data trovata
+    t = tNorm.replace(mMese[0], '').replace(/\bprimo\b/,'').trim();
+    return true;
+  })()) {
+    // data già impostata nel blocco IIFE sopra
+  }
   // giorno settimana: "lunedì", "martedì scorso", ecc.
   else {
     var GIORNI = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
